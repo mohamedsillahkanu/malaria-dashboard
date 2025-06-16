@@ -889,3 +889,774 @@
                 <div class="stat-item">
                     <span class="stat-label">${stat.label}</span>
                     <span class="stat-value">${stat.value}</span>
+                </div>
+            `).join('');
+        }
+
+        function getNumericColumns() {
+            if (filteredData.length === 0) return [];
+            
+            return Object.keys(filteredData[0]).filter(col => {
+                const values = filteredData.slice(0, 10).map(row => row[col]);
+                return values.some(val => !isNaN(parseFloat(val)) && isFinite(val));
+            });
+        }
+
+        function updateCharts() {
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => {
+                if (chart && typeof chart.destroy === 'function') {
+                    chart.destroy();
+                }
+            });
+            charts = {};
+            
+            // Create all charts with proper sizing
+            createTimeChart();
+            createCountryChart();
+            createAgeChart();
+            createInterventionChart();
+            createCombinedChart();
+            createScatterChart();
+        }
+
+        function createTimeChart() {
+            const ctx = document.getElementById('timeChart');
+            if (!ctx) return;
+            
+            const timeData = filteredData.reduce((acc, row) => {
+                const year = row.year || row.date || '';
+                const yearStr = year ? String(year).match(/\d{4}/)?.[0] : '';
+                const value = parseFloat(row.cases || row.incidence || row.value || 0);
+                
+                if (yearStr && !isNaN(value)) {
+                    acc[yearStr] = (acc[yearStr] || 0) + value;
+                }
+                return acc;
+            }, {});
+            
+            const years = Object.keys(timeData).sort();
+            const values = years.map(year => timeData[year]);
+            
+            charts.timeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [{
+                        label: 'Total Cases/Incidence',
+                        data: values,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: '#667eea',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Year',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Cases/Incidence',
+                                font: { weight: 'bold' }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createCountryChart() {
+            const ctx = document.getElementById('countryChart');
+            if (!ctx) return;
+            
+            const countryData = filteredData.reduce((acc, row) => {
+                const country = row.country || row.region || row.location || 'Unknown';
+                const value = parseFloat(row.cases || row.incidence || row.value || 0);
+                
+                if (!isNaN(value)) {
+                    acc[country] = (acc[country] || 0) + value;
+                }
+                return acc;
+            }, {});
+            
+            const sortedCountries = Object.entries(countryData)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+            
+            const countries = sortedCountries.map(item => item[0]);
+            const values = sortedCountries.map(item => item[1]);
+            
+            // Generate colors
+            const colors = countries.map((_, i) => 
+                `hsl(${240 + i * 25}, 70%, ${60 + i * 3}%)`
+            );
+            
+            charts.countryChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: countries,
+                    datasets: [{
+                        label: 'Total Cases',
+                        data: values,
+                        backgroundColor: colors,
+                        borderColor: colors.map(color => color.replace('70%', '80%')),
+                        borderWidth: 2,
+                        borderRadius: 5,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 0
+                            },
+                            title: {
+                                display: true,
+                                text: 'Country/Region',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Total Cases',
+                                font: { weight: 'bold' }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createAgeChart() {
+            const ctx = document.getElementById('ageChart');
+            if (!ctx) return;
+            
+            const ageData = filteredData.reduce((acc, row) => {
+                const age = row.age_group || row.age || row.demographic || 'Unknown';
+                const value = parseFloat(row.cases || row.incidence || row.value || 0);
+                
+                if (!isNaN(value)) {
+                    acc[age] = (acc[age] || 0) + value;
+                }
+                return acc;
+            }, {});
+            
+            const ages = Object.keys(ageData);
+            const values = Object.values(ageData);
+            
+            charts.ageChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ages,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            '#667eea', '#764ba2', '#f093fb', '#f5576c',
+                            '#4facfe', '#00f2fe', '#43e97b', '#38f9d7'
+                        ],
+                        borderWidth: 3,
+                        borderColor: '#fff',
+                        hoverBorderWidth: 4,
+                        hoverBorderColor: '#333'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.raw / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.raw.toLocaleString()} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createInterventionChart() {
+            const ctx = document.getElementById('interventionChart');
+            if (!ctx) return;
+            
+            // Calculate average intervention coverage
+            const interventionData = filteredData.reduce((acc, row) => {
+                const itn = parseFloat(row.itn_coverage || 0);
+                const irs = parseFloat(row.irs_coverage || 0);
+                const act = parseFloat(row.act_treatment_rate || row.act_coverage || 0);
+                
+                if (!isNaN(itn)) acc.itn.push(itn);
+                if (!isNaN(irs)) acc.irs.push(irs);
+                if (!isNaN(act)) acc.act.push(act);
+                
+                return acc;
+            }, { itn: [], irs: [], act: [] });
+            
+            const avgITN = interventionData.itn.length > 0 ? 
+                interventionData.itn.reduce((a, b) => a + b, 0) / interventionData.itn.length : 0;
+            const avgIRS = interventionData.irs.length > 0 ? 
+                interventionData.irs.reduce((a, b) => a + b, 0) / interventionData.irs.length : 0;
+            const avgACT = interventionData.act.length > 0 ? 
+                interventionData.act.reduce((a, b) => a + b, 0) / interventionData.act.length : 0;
+            
+            charts.interventionChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['ITN Coverage', 'IRS Coverage', 'ACT Treatment'],
+                    datasets: [{
+                        label: 'Average Coverage (%)',
+                        data: [avgITN, avgIRS, avgACT],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            pointLabels: {
+                                font: { size: 12, weight: 'bold' }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createCombinedChart() {
+            const ctx = document.getElementById('combinedChart');
+            if (!ctx) return;
+            
+            // Group data by year and calculate metrics
+            const yearlyData = filteredData.reduce((acc, row) => {
+                const year = row.year || row.date || '';
+                const yearStr = year ? String(year).match(/\d{4}/)?.[0] : '';
+                
+                if (!yearStr) return acc;
+                
+                if (!acc[yearStr]) {
+                    acc[yearStr] = { cases: 0, deaths: 0, itn: [], irs: [], act: [] };
+                }
+                
+                acc[yearStr].cases += parseFloat(row.cases || 0) || 0;
+                acc[yearStr].deaths += parseFloat(row.deaths || 0) || 0;
+                
+                const itn = parseFloat(row.itn_coverage || 0);
+                const irs = parseFloat(row.irs_coverage || 0);
+                const act = parseFloat(row.act_treatment_rate || row.act_coverage || 0);
+                
+                if (!isNaN(itn)) acc[yearStr].itn.push(itn);
+                if (!isNaN(irs)) acc[yearStr].irs.push(irs);
+                if (!isNaN(act)) acc[yearStr].act.push(act);
+                
+                return acc;
+            }, {});
+            
+            const years = Object.keys(yearlyData).sort();
+            const cases = years.map(year => yearlyData[year].cases);
+            const deaths = years.map(year => yearlyData[year].deaths);
+            const itnAvg = years.map(year => {
+                const itn = yearlyData[year].itn;
+                return itn.length > 0 ? itn.reduce((a, b) => a + b, 0) / itn.length : 0;
+            });
+            
+            charts.combinedChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Cases',
+                            data: cases,
+                            backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                            borderColor: '#667eea',
+                            borderWidth: 2,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Deaths',
+                            data: deaths,
+                            backgroundColor: 'rgba(245, 87, 108, 0.7)',
+                            borderColor: '#f5576c',
+                            borderWidth: 2,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'ITN Coverage (%)',
+                            data: itnAvg,
+                            borderColor: '#43e97b',
+                            backgroundColor: 'rgba(67, 233, 123, 0.1)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.4,
+                            yAxisID: 'y1',
+                            pointRadius: 5,
+                            pointBackgroundColor: '#43e97b'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Year',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Cases / Deaths',
+                                font: { weight: 'bold' }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            min: 0,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Coverage (%)',
+                                font: { weight: 'bold' }
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createScatterChart() {
+            const ctx = document.getElementById('scatterChart');
+            if (!ctx) return;
+            
+            const scatterData = filteredData
+                .map(row => {
+                    const incidence = parseFloat(row.incidence_per_1000 || row.incidence || 0);
+                    const mortality = parseFloat(row.mortality_per_1000 || row.mortality || row.deaths || 0);
+                    const country = row.country || row.region || row.location || 'Unknown';
+                    
+                    return {
+                        x: incidence,
+                        y: mortality,
+                        country: country
+                    };
+                })
+                .filter(point => !isNaN(point.x) && !isNaN(point.y) && point.x > 0 && point.y >= 0);
+            
+            // Group by country for different colors
+            const countryGroups = {};
+            scatterData.forEach(point => {
+                if (!countryGroups[point.country]) {
+                    countryGroups[point.country] = [];
+                }
+                countryGroups[point.country].push({ x: point.x, y: point.y });
+            });
+            
+            const datasets = Object.keys(countryGroups).slice(0, 8).map((country, index) => ({
+                label: country,
+                data: countryGroups[country],
+                backgroundColor: `hsl(${index * 45}, 70%, 60%)`,
+                borderColor: `hsl(${index * 45}, 80%, 50%)`,
+                borderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }));
+            
+            charts.scatterChart = new Chart(ctx, {
+                type: 'scatter',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].dataset.label;
+                                },
+                                label: function(context) {
+                                    return `Incidence: ${context.raw.x.toFixed(2)}, Mortality: ${context.raw.y.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Incidence per 1,000',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Mortality per 1,000',
+                                font: { weight: 'bold' }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTable() {
+            const table = document.getElementById('data-table');
+            const thead = document.getElementById('table-head');
+            const tbody = document.getElementById('table-body');
+            
+            if (filteredData.length === 0) {
+                thead.innerHTML = '';
+                tbody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 50px; color: #999;">No data to display</td></tr>';
+                return;
+            }
+            
+            const columns = Object.keys(filteredData[0]);
+            
+            // Create header
+            thead.innerHTML = `<tr>${columns.map(col => 
+                `<th>${col.replace(/_/g, ' ').toUpperCase()}</th>`
+            ).join('')}</tr>`;
+            
+            // Create rows (limit to first 100 for performance)
+            tbody.innerHTML = filteredData.slice(0, 100).map(row => 
+                `<tr>${columns.map(col => {
+                    let value = row[col] || '';
+                    // Format numbers
+                    if (typeof value === 'number') {
+                        value = value.toLocaleString();
+                    }
+                    return `<td>${value}</td>`;
+                }).join('')}</tr>`
+            ).join('');
+        }
+
+        function exportData() {
+            if (filteredData.length === 0) {
+                alert('No data to export!');
+                return;
+            }
+            
+            const headers = Object.keys(filteredData[0]);
+            const csvContent = [
+                headers.join(','),
+                ...filteredData.map(row => 
+                    headers.map(header => `"${row[header] || ''}"`).join(',')
+                )
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `malaria_filtered_data_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function generateAnalysis() {
+            const analysisSection = document.getElementById('analysis-section');
+            const analysisContent = document.getElementById('analysis-content');
+            
+            const numericCols = getNumericColumns();
+            const totalRecords = filteredData.length;
+            
+            let analysis = `
+                <h3>📊 Dataset Overview</h3>
+                <p><strong>Total Records:</strong> ${totalRecords.toLocaleString()}</p>
+                <p><strong>Numeric Columns:</strong> ${numericCols.join(', ')}</p>
+                
+                <h3>🐍 Python Analysis Code</h3>
+                <div class="code-block">
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+
+# Load your data
+df = pd.read_excel('malaria_data.xlsx')
+
+# Basic statistics
+print("Dataset Info:")
+print(f"Shape: {df.shape}")
+print(f"Columns: {df.columns.tolist()}")
+print("\\nBasic Statistics:")
+print(df.describe())
+
+# Missing values analysis
+print("\\nMissing Values:")
+print(df.isnull().sum())
+                </div>
+            `;
+            
+            if (numericCols.length > 0) {
+                const sampleCol = numericCols[0];
+                const values = filteredData.map(row => parseFloat(row[sampleCol])).filter(v => !isNaN(v));
+                
+                if (values.length > 1) {
+                    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+                    const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
+                    const stdDev = Math.sqrt(variance);
+                    
+                    analysis += `
+                        <h3>📈 Statistical Analysis for ${sampleCol}</h3>
+                        <ul>
+                            <li><strong>Mean:</strong> ${mean.toFixed(2)}</li>
+                            <li><strong>Standard Deviation:</strong> ${stdDev.toFixed(2)}</li>
+                            <li><strong>Min:</strong> ${Math.min(...values).toFixed(2)}</li>
+                            <li><strong>Max:</strong> ${Math.max(...values).toFixed(2)}</li>
+                            <li><strong>Sample Size:</strong> ${values.length}</li>
+                        </ul>
+                        
+                        <div class="code-block">
+# Malaria-specific analysis
+import plotly.express as px
+import plotly.graph_objects as go
+
+# Time series analysis
+fig = px.line(df, x='year', y='incidence_per_1000', 
+              color='country', title='Malaria Incidence Trends')
+fig.show()
+
+# Geographic heatmap
+fig = px.choropleth(df.groupby('country')['cases'].sum().reset_index(),
+                   locations='country', locationmode='country names',
+                   color='cases', title='Malaria Cases by Country')
+fig.show()
+
+# Age group analysis
+fig = px.box(df, x='age_group', y='case_fatality_rate',
+            title='Case Fatality Rate by Age Group')
+fig.show()
+                        </div>
+                    `;
+                }
+            }
+            
+            analysis += `
+                <h3>🎯 Advanced Malaria Analysis</h3>
+                <div class="code-block">
+# Intervention effectiveness analysis
+intervention_cols = ['itn_coverage', 'irs_coverage', 'act_treatment_rate']
+outcome_cols = ['incidence_per_1000', 'case_fatality_rate']
+
+correlation_matrix = df[intervention_cols + outcome_cols].corr()
+sns.heatmap(correlation_matrix, annot=True, cmap='RdYlBu_r')
+plt.title('Intervention vs Outcome Correlation')
+plt.show()
+
+# Seasonal pattern analysis
+df['month_num'] = pd.to_datetime(df['month'], format='%B').dt.month
+seasonal_cases = df.groupby('month_num')['cases'].mean()
+plt.figure(figsize=(10, 6))
+plt.plot(seasonal_cases.index, seasonal_cases.values, marker='o')
+plt.title('Seasonal Pattern of Malaria Cases')
+plt.xlabel('Month')
+plt.ylabel('Average Cases')
+plt.show()
+
+# High burden identification
+country_burden = df.groupby('country')['cases'].sum().sort_values(ascending=False)
+high_burden_threshold = country_burden.quantile(0.8)
+high_burden_countries = country_burden[country_burden >= high_burden_threshold]
+print("High Burden Countries:")
+print(high_burden_countries)
+                </div>
+            `;
+            
+            analysisContent.innerHTML = analysis;
+            analysisSection.style.display = 'block';
+            
+            // Scroll to analysis section
+            analysisSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.querySelector('.sidebar-content').appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add any initialization code here
+        });
+    </script>
+</body>
+</html>
