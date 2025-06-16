@@ -19,45 +19,71 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
+            overflow-x: hidden;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
+        .main-container {
+            display: flex;
+            min-height: 100vh;
         }
 
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
+        /* Sidebar Styles - 30% */
+        .sidebar {
+            width: 30%;
+            min-width: 350px;
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            max-height: 100vh;
         }
 
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+        .sidebar-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .sidebar-content {
+            padding: 20px;
         }
 
         .upload-section {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: 2px dashed #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            transform: translateY(-1px);
         }
 
         .file-input-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 10px;
         }
 
         .file-input {
@@ -66,66 +92,81 @@
 
         .file-input-label {
             display: inline-block;
-            padding: 15px 30px;
+            padding: 12px 20px;
             background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
-            border-radius: 25px;
+            border-radius: 20px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 600;
+            font-size: 0.9rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         .file-input-label:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
-        .controls-panel {
+        .filters-section {
             background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
             display: none;
         }
 
+        .filters-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
         .filter-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 20px;
-            align-items: center;
+            margin-bottom: 15px;
         }
 
-        .filter-item {
-            display: flex;
-            flex-direction: column;
-            min-width: 200px;
-        }
-
-        .filter-item label {
+        .filter-group label {
+            display: block;
             font-weight: 600;
             margin-bottom: 5px;
             color: #555;
+            font-size: 0.9rem;
         }
 
-        .filter-item select, .filter-item input {
+        .filter-group select, .filter-group input {
+            width: 100%;
             padding: 10px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 14px;
-            transition: border-color 0.3s ease;
+            transition: all 0.3s ease;
+            background: white;
         }
 
-        .filter-item select:focus, .filter-item input:focus {
+        .filter-group select:focus, .filter-group input:focus {
             outline: none;
             border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .controls-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: none;
         }
 
         .btn {
-            padding: 12px 25px;
+            width: 100%;
+            padding: 12px;
             background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
             border: none;
@@ -135,42 +176,142 @@
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
         }
 
         .btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
+        .btn-secondary {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
         }
 
-        .chart-container {
+        .btn-success {
+            background: linear-gradient(45deg, #43e97b, #38f9d7);
+        }
+
+        .stats-sidebar {
             background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            min-height: 400px;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: none;
         }
 
-        .chart-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 20px;
+        .stats-sidebar h3 {
+            font-size: 1rem;
+            margin-bottom: 15px;
             color: #333;
             text-align: center;
         }
 
-        .data-table {
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        /* Main Content Styles - 70% */
+        .main-content {
+            width: 70%;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        .main-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .main-header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chart-container.full-width {
+            grid-column: 1 / -1;
+            min-height: 450px;
+        }
+
+        .chart-container.large {
+            min-height: 500px;
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            position: relative;
+            min-height: 300px;
+        }
+
+        .chart-wrapper canvas {
+            max-height: 100% !important;
+        }
+
+        .data-table-section {
             background: white;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
             overflow: hidden;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .table-header {
@@ -183,12 +324,13 @@
 
         .table-container {
             max-height: 400px;
-            overflow-y: auto;
+            overflow: auto;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 0.9rem;
         }
 
         th, td {
@@ -203,54 +345,29 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            color: #333;
         }
 
         tr:hover {
             background: #f8f9fa;
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
+        .analysis-section {
             background: white;
             padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            border-left: 5px solid #667eea;
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        .stat-label {
-            font-size: 1rem;
-            color: #666;
-            font-weight: 600;
-        }
-
-        .analysis-section {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .analysis-title {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 700;
             margin-bottom: 20px;
             color: #333;
+            text-align: center;
         }
 
         .code-block {
@@ -262,12 +379,14 @@
             margin: 15px 0;
             overflow-x: auto;
             border-left: 4px solid #667eea;
+            font-size: 0.9rem;
+            line-height: 1.4;
         }
 
         .loading {
             display: none;
             text-align: center;
-            padding: 20px;
+            padding: 40px;
             color: white;
             font-size: 1.2rem;
         }
@@ -281,114 +400,293 @@
             margin: 10px 0;
         }
 
-        @media (max-width: 768px) {
-            .filter-group {
-                flex-direction: column;
-            }
-            
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .empty-state h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
             }
-            
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
             }
+            
+            .sidebar {
+                width: 100%;
+                min-width: auto;
+                max-height: none;
+            }
+            
+            .main-content {
+                width: 100%;
+            }
+            
+            .sidebar-header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .main-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Custom scrollbar */
+        .sidebar::-webkit-scrollbar,
+        .main-content::-webkit-scrollbar,
+        .table-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track,
+        .main-content::-webkit-scrollbar-track,
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb,
+        .main-content::-webkit-scrollbar-thumb,
+        .table-container::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover,
+        .main-content::-webkit-scrollbar-thumb:hover,
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #5a67d8;
+        }
+
+        /* Animation for chart containers */
+        .chart-container {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Tooltip styles */
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🦟 Malaria Indicators Dashboard</h1>
-            <p>Advanced Analytics for Malaria Data - Upload Excel files, filter data, and generate insights</p>
-        </div>
+    <div class="main-container">
+        <!-- Sidebar - 30% -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>🦟 Malaria Dashboard</h1>
+                <p>Data Upload & Controls</p>
+            </div>
+            
+            <div class="sidebar-content">
+                <!-- Upload Section -->
+                <div class="upload-section">
+                    <div class="file-input-container">
+                        <label for="file-input" class="file-input-label">
+                            📊 Upload Excel/CSV File
+                        </label>
+                        <input type="file" id="file-input" class="file-input" accept=".xlsx,.xls,.csv">
+                        <p style="color: #666; text-align: center; font-size: 0.8rem; margin-top: 5px;">
+                            Excel (.xlsx, .xls) or CSV files
+                        </p>
+                    </div>
+                </div>
 
-        <div class="upload-section">
-            <div class="file-input-container">
-                <label for="file-input" class="file-input-label">
-                    📊 Upload Excel File
-                </label>
-                <input type="file" id="file-input" class="file-input" accept=".xlsx,.xls,.csv">
-                <p style="color: #666; text-align: center;">Supported formats: Excel (.xlsx, .xls) and CSV files</p>
+                <!-- Filters Section -->
+                <div class="filters-section" id="filters-section">
+                    <div class="filters-title">🔍 Data Filters</div>
+                    
+                    <div class="filter-group">
+                        <label for="country-filter" class="tooltip" data-tooltip="Filter by specific country or region">Country/Region</label>
+                        <select id="country-filter">
+                            <option value="">All Countries</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="year-filter" class="tooltip" data-tooltip="Filter by specific year">Year</label>
+                        <select id="year-filter">
+                            <option value="">All Years</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="indicator-filter" class="tooltip" data-tooltip="Filter by malaria indicator type">Indicator</label>
+                        <select id="indicator-filter">
+                            <option value="">All Indicators</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="age-filter" class="tooltip" data-tooltip="Filter by age group">Age Group</label>
+                        <select id="age-filter">
+                            <option value="">All Ages</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="region-filter" class="tooltip" data-tooltip="Filter by geographic region">Region</label>
+                        <select id="region-filter">
+                            <option value="">All Regions</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="risk-filter" class="tooltip" data-tooltip="Filter by malaria risk level">Risk Level</label>
+                        <select id="risk-filter">
+                            <option value="">All Risk Levels</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Controls Section -->
+                <div class="controls-section" id="controls-section">
+                    <button class="btn" onclick="applyFilters()">🔄 Apply Filters</button>
+                    <button class="btn btn-secondary" onclick="resetFilters()">🔄 Reset Filters</button>
+                    <button class="btn btn-success" onclick="generateAnalysis()">📊 Generate Analysis</button>
+                    <button class="btn" onclick="exportData()">💾 Export Filtered Data</button>
+                </div>
+
+                <!-- Quick Stats Sidebar -->
+                <div class="stats-sidebar" id="stats-sidebar">
+                    <h3>📈 Quick Stats</h3>
+                    <div id="sidebar-stats">
+                        <!-- Stats will be populated here -->
+                    </div>
+                </div>
+
+                <div class="loading" id="loading">
+                    🔄 Processing your data...
+                </div>
             </div>
         </div>
 
-        <div class="loading" id="loading">
-            🔄 Processing your data...
-        </div>
-
-        <div class="controls-panel" id="controls-panel">
-            <div class="filter-group">
-                <div class="filter-item">
-                    <label for="country-filter">Country/Region</label>
-                    <select id="country-filter">
-                        <option value="">All Countries</option>
-                    </select>
-                </div>
-                <div class="filter-item">
-                    <label for="year-filter">Year</label>
-                    <select id="year-filter">
-                        <option value="">All Years</option>
-                    </select>
-                </div>
-                <div class="filter-item">
-                    <label for="indicator-filter">Indicator</label>
-                    <select id="indicator-filter">
-                        <option value="">All Indicators</option>
-                    </select>
-                </div>
-                <div class="filter-item">
-                    <label for="age-filter">Age Group</label>
-                    <select id="age-filter">
-                        <option value="">All Ages</option>
-                    </select>
-                </div>
-            </div>
-            <div class="filter-group">
-                <button class="btn" onclick="applyFilters()">Apply Filters</button>
-                <button class="btn" onclick="resetFilters()">Reset Filters</button>
-                <button class="btn" onclick="generateAnalysis()">Generate Analysis</button>
-            </div>
-        </div>
-
-        <div id="dashboard-content" style="display: none;">
-            <div class="stats-grid" id="stats-grid">
-                <!-- Statistics cards will be populated here -->
+        <!-- Main Content - 70% -->
+        <div class="main-content">
+            <div class="main-header">
+                <h1>Malaria Indicators Analytics</h1>
+                <p>Interactive visualizations and insights from malaria surveillance data</p>
             </div>
 
-            <div class="dashboard-grid">
-                <div class="chart-container">
-                    <div class="chart-title">Malaria Incidence Over Time</div>
-                    <canvas id="timeChart"></canvas>
-                </div>
-                <div class="chart-container">
-                    <div class="chart-title">Cases by Country/Region</div>
-                    <canvas id="countryChart"></canvas>
-                </div>
-                <div class="chart-container">
-                    <div class="chart-title">Age Group Distribution</div>
-                    <canvas id="ageChart"></canvas>
-                </div>
-                <div class="chart-container">
-                    <div class="chart-title">Mortality vs Incidence</div>
-                    <canvas id="scatterChart"></canvas>
-                </div>
+            <div id="empty-state" class="empty-state">
+                <h2>👋 Welcome to Malaria Dashboard</h2>
+                <p>Upload your Excel or CSV file to start analyzing malaria indicators data</p>
+                <p style="margin-top: 20px; font-size: 1rem;">
+                    📋 Supported data includes: incidence rates, mortality, case counts, intervention coverage, and demographic breakdowns
+                </p>
             </div>
 
-            <div class="data-table" id="data-table-section">
-                <div class="table-header">📈 Filtered Data</div>
-                <div class="table-container">
-                    <table id="data-table">
-                        <thead id="table-head"></thead>
-                        <tbody id="table-body"></tbody>
-                    </table>
+            <div id="dashboard-content" style="display: none;">
+                <!-- Main Charts Grid -->
+                <div class="dashboard-grid">
+                    <div class="chart-container">
+                        <div class="chart-title">📈 Malaria Incidence Trends</div>
+                        <div class="chart-wrapper">
+                            <canvas id="timeChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-title">🌍 Geographic Distribution</div>
+                        <div class="chart-wrapper">
+                            <canvas id="countryChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-title">👥 Age Group Analysis</div>
+                        <div class="chart-wrapper">
+                            <canvas id="ageChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-title">🎯 Intervention Coverage</div>
+                        <div class="chart-wrapper">
+                            <canvas id="interventionChart"></canvas>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="analysis-section" id="analysis-section" style="display: none;">
-                <div class="analysis-title">🧮 Statistical Analysis & Python Code</div>
-                <div id="analysis-content">
-                    <!-- Analysis content will be populated here -->
+                <!-- Full Width Charts -->
+                <div class="dashboard-grid">
+                    <div class="chart-container full-width">
+                        <div class="chart-title">📊 Comprehensive Malaria Metrics Dashboard</div>
+                        <div class="chart-wrapper">
+                            <canvas id="combinedChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="chart-container full-width">
+                        <div class="chart-title">🔗 Mortality vs Incidence Correlation</div>
+                        <div class="chart-wrapper">
+                            <canvas id="scatterChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="data-table-section" id="data-table-section">
+                    <div class="table-header">📋 Filtered Dataset</div>
+                    <div class="table-container">
+                        <table id="data-table">
+                            <thead id="table-head"></thead>
+                            <tbody id="table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Analysis Section -->
+                <div class="analysis-section" id="analysis-section">
+                    <div class="analysis-title">🧮 Statistical Analysis & Python Code</div>
+                    <div id="analysis-content">
+                        <!-- Analysis content will be populated here -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -407,6 +705,7 @@
             if (!file) return;
 
             document.getElementById('loading').style.display = 'block';
+            document.getElementById('empty-state').style.display = 'none';
             
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -445,7 +744,10 @@
             populateFilters();
             updateDashboard();
             
-            document.getElementById('controls-panel').style.display = 'block';
+            // Show all sections
+            document.getElementById('filters-section').style.display = 'block';
+            document.getElementById('controls-section').style.display = 'block';
+            document.getElementById('stats-sidebar').style.display = 'block';
             document.getElementById('dashboard-content').style.display = 'block';
         }
 
@@ -476,6 +778,18 @@
                 row.age_group || row.age || row.demographic || ''
             ))].filter(a => a).sort();
             populateSelect('age-filter', ages);
+
+            // Populate region filter
+            const regions = [...new Set(rawData.map(row => 
+                row.region || row.area || ''
+            ))].filter(r => r).sort();
+            populateSelect('region-filter', regions);
+
+            // Populate risk filter
+            const risks = [...new Set(rawData.map(row => 
+                row.risk_level || row.risk || ''
+            ))].filter(r => r).sort();
+            populateSelect('risk-filter', risks);
         }
 
         function populateSelect(selectId, options) {
@@ -502,17 +816,23 @@
             const yearFilter = document.getElementById('year-filter').value;
             const indicatorFilter = document.getElementById('indicator-filter').value;
             const ageFilter = document.getElementById('age-filter').value;
+            const regionFilter = document.getElementById('region-filter').value;
+            const riskFilter = document.getElementById('risk-filter').value;
             
             filteredData = rawData.filter(row => {
                 const country = row.country || row.region || row.location || row.area || '';
                 const year = String(row.year || row.date || row.time || '');
                 const indicator = row.indicator || row.measure || row.metric || '';
                 const age = row.age_group || row.age || row.demographic || '';
+                const region = row.region || row.area || '';
+                const risk = row.risk_level || row.risk || '';
                 
                 return (!countryFilter || country.includes(countryFilter)) &&
                        (!yearFilter || year.includes(yearFilter)) &&
                        (!indicatorFilter || indicator.includes(indicatorFilter)) &&
-                       (!ageFilter || age.includes(ageFilter));
+                       (!ageFilter || age.includes(ageFilter)) &&
+                       (!regionFilter || region.includes(regionFilter)) &&
+                       (!riskFilter || risk.includes(riskFilter));
             });
             
             updateDashboard();
@@ -523,647 +843,49 @@
             document.getElementById('year-filter').value = '';
             document.getElementById('indicator-filter').value = '';
             document.getElementById('age-filter').value = '';
+            document.getElementById('region-filter').value = '';
+            document.getElementById('risk-filter').value = '';
             
             filteredData = [...rawData];
             updateDashboard();
         }
 
         function updateDashboard() {
-            updateStatistics();
+            updateSidebarStats();
             updateCharts();
             updateTable();
         }
 
-        function updateStatistics() {
-            const statsGrid = document.getElementById('stats-grid');
+        function updateSidebarStats() {
+            const sidebarStats = document.getElementById('sidebar-stats');
             const numericColumns = getNumericColumns();
             
             const stats = [
-                { label: 'Total Records', value: filteredData.length },
-                { label: 'Countries/Regions', value: new Set(filteredData.map(row => 
+                { label: 'Records', value: filteredData.length.toLocaleString() },
+                { label: 'Countries', value: new Set(filteredData.map(row => 
                     row.country || row.region || row.location || '')).size },
-                { label: 'Years Covered', value: new Set(filteredData.map(row => {
+                { label: 'Years', value: new Set(filteredData.map(row => {
                     const year = row.year || row.date || '';
                     return year ? String(year).match(/\d{4}/)?.[0] : '';
                 })).size }
             ];
             
-            // Add numeric statistics
-            numericColumns.slice(0, 3).forEach(col => {
-                const values = filteredData.map(row => parseFloat(row[col])).filter(v => !isNaN(v));
-                if (values.length > 0) {
-                    const avg = values.reduce((a, b) => a + b, 0) / values.length;
-                    stats.push({
-                        label: `Avg ${col.replace(/_/g, ' ').toUpperCase()}`,
-                        value: avg.toLocaleString(undefined, { maximumFractionDigits: 2 })
-                    });
-                }
-            });
-            
-            statsGrid.innerHTML = stats.map(stat => `
-                <div class="stat-card">
-                    <div class="stat-number">${stat.value}</div>
-                    <div class="stat-label">${stat.label}</div>
-                </div>
-            `).join('');
-        }
-
-        function getNumericColumns() {
-            if (filteredData.length === 0) return [];
-            
-            return Object.keys(filteredData[0]).filter(col => {
-                const values = filteredData.slice(0, 10).map(row => row[col]);
-                return values.some(val => !isNaN(parseFloat(val)) && isFinite(val));
-            });
-        }
-
-        function updateCharts() {
-            // Destroy existing charts
-            Object.values(charts).forEach(chart => chart.destroy());
-            charts = {};
-            
-            // Time series chart
-            createTimeChart();
-            
-            // Country chart
-            createCountryChart();
-            
-            // Age group chart
-            createAgeChart();
-            
-            // Scatter plot
-            createScatterChart();
-        }
-
-        function createTimeChart() {
-            const ctx = document.getElementById('timeChart').getContext('2d');
-            
-            const timeData = filteredData.reduce((acc, row) => {
-                const year = row.year || row.date || '';
-                const yearStr = year ? String(year).match(/\d{4}/)?.[0] : '';
-                const value = parseFloat(row.cases || row.incidence || row.value || 0);
+            // Add key numeric stats
+            if (numericColumns.length > 0) {
+                const totalCases = filteredData.reduce((sum, row) => 
+                    sum + (parseFloat(row.cases || row.incidence || 0) || 0), 0);
+                const totalDeaths = filteredData.reduce((sum, row) => 
+                    sum + (parseFloat(row.deaths || row.mortality || 0) || 0), 0);
                 
-                if (yearStr && !isNaN(value)) {
-                    acc[yearStr] = (acc[yearStr] || 0) + value;
+                if (totalCases > 0) {
+                    stats.push({ label: 'Total Cases', value: totalCases.toLocaleString() });
                 }
-                return acc;
-            }, {});
-            
-            const years = Object.keys(timeData).sort();
-            const values = years.map(year => timeData[year]);
-            
-            charts.timeChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: years,
-                    datasets: [{
-                        label: 'Total Cases/Incidence',
-                        data: values,
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return value.toLocaleString();
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function createCountryChart() {
-            const ctx = document.getElementById('countryChart').getContext('2d');
-            
-            const countryData = filteredData.reduce((acc, row) => {
-                const country = row.country || row.region || row.location || 'Unknown';
-                const value = parseFloat(row.cases || row.incidence || row.value || 0);
-                
-                if (!isNaN(value)) {
-                    acc[country] = (acc[country] || 0) + value;
-                }
-                return acc;
-            }, {});
-            
-            const sortedCountries = Object.entries(countryData)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 10);
-            
-            const countries = sortedCountries.map(item => item[0]);
-            const values = sortedCountries.map(item => item[1]);
-            
-            charts.countryChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: countries,
-                    datasets: [{
-                        label: 'Total Cases',
-                        data: values,
-                        backgroundColor: countries.map((_, i) => 
-                            `hsl(${240 + i * 15}, 70%, 60%)`
-                        ),
-                        borderColor: '#667eea',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                maxRotation: 45
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return value.toLocaleString();
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function createAgeChart() {
-            const ctx = document.getElementById('ageChart').getContext('2d');
-            
-            const ageData = filteredData.reduce((acc, row) => {
-                const age = row.age_group || row.age || row.demographic || 'Unknown';
-                const value = parseFloat(row.cases || row.incidence || row.value || 0);
-                
-                if (!isNaN(value)) {
-                    acc[age] = (acc[age] || 0) + value;
-                }
-                return acc;
-            }, {});
-            
-            const ages = Object.keys(ageData);
-            const values = Object.values(ageData);
-            
-            charts.ageChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ages,
-                    datasets: [{
-                        data: values,
-                        backgroundColor: [
-                            '#667eea', '#764ba2', '#f093fb', '#f5576c',
-                            '#4facfe', '#00f2fe', '#43e97b', '#38f9d7'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-        }
-
-        function createScatterChart() {
-            const ctx = document.getElementById('scatterChart').getContext('2d');
-            const numericCols = getNumericColumns();
-            
-            if (numericCols.length < 2) {
-                ctx.canvas.parentElement.innerHTML = '<p style="text-align: center; color: #666; padding: 50px;">Insufficient numeric data for scatter plot</p>';
-                return;
-            }
-            
-            const xCol = numericCols[0];
-            const yCol = numericCols[1];
-            
-            const scatterData = filteredData
-                .map(row => ({
-                    x: parseFloat(row[xCol]),
-                    y: parseFloat(row[yCol])
-                }))
-                .filter(point => !isNaN(point.x) && !isNaN(point.y));
-            
-            charts.scatterChart = new Chart(ctx, {
-                type: 'scatter',
-                data: {
-                    datasets: [{
-                        label: `${yCol} vs ${xCol}`,
-                        data: scatterData,
-                        backgroundColor: 'rgba(102, 126, 234, 0.6)',
-                        borderColor: '#667eea',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true
-                        }
-                    },
-                    scales: {
-                        x: {
-                            type: 'linear',
-                            position: 'bottom',
-                            title: {
-                                display: true,
-                                text: xCol.replace(/_/g, ' ').toUpperCase()
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: yCol.replace(/_/g, ' ').toUpperCase()
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateTable() {
-            const table = document.getElementById('data-table');
-            const thead = document.getElementById('table-head');
-            const tbody = document.getElementById('table-body');
-            
-            if (filteredData.length === 0) {
-                thead.innerHTML = '';
-                tbody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 50px;">No data to display</td></tr>';
-                return;
-            }
-            
-            const columns = Object.keys(filteredData[0]);
-            
-            // Create header
-            thead.innerHTML = `<tr>${columns.map(col => 
-                `<th>${col.replace(/_/g, ' ').toUpperCase()}</th>`
-            ).join('')}</tr>`;
-            
-            // Create rows (limit to first 100 for performance)
-            tbody.innerHTML = filteredData.slice(0, 100).map(row => 
-                `<tr>${columns.map(col => 
-                    `<td>${row[col] || ''}</td>`
-                ).join('')}</tr>`
-            ).join('');
-        }
-
-        function generateAnalysis() {
-            const analysisSection = document.getElementById('analysis-section');
-            const analysisContent = document.getElementById('analysis-content');
-            
-            const numericCols = getNumericColumns();
-            const totalRecords = filteredData.length;
-            
-            let analysis = `
-                <h3>📊 Dataset Overview</h3>
-                <p><strong>Total Records:</strong> ${totalRecords.toLocaleString()}</p>
-                <p><strong>Numeric Columns:</strong> ${numericCols.join(', ')}</p>
-                
-                <h3>🐍 Python Analysis Code</h3>
-                <div class="code-block">
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy import stats
-
-# Load your data
-df = pd.read_excel('malaria_data.xlsx')
-
-# Basic statistics
-print("Dataset Info:")
-print(f"Shape: {df.shape}")
-print(f"Columns: {df.columns.tolist()}")
-print("\\nBasic Statistics:")
-print(df.describe())
-
-# Missing values analysis
-print("\\nMissing Values:")
-print(df.isnull().sum())
-</div>
-            `;
-            
-            if (numericCols.length > 0) {
-                const sampleCol = numericCols[0];
-                const values = filteredData.map(row => parseFloat(row[sampleCol])).filter(v => !isNaN(v));
-                
-                if (values.length > 1) {
-                    const mean = values.reduce((a, b) => a + b, 0) / values.length;
-                    const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
-                    const stdDev = Math.sqrt(variance);
-                    
-                    analysis += `
-                        <h3>📈 Statistical Analysis for ${sampleCol}</h3>
-                        <ul>
-                            <li><strong>Mean:</strong> ${mean.toFixed(2)}</li>
-                            <li><strong>Standard Deviation:</strong> ${stdDev.toFixed(2)}</li>
-                            <li><strong>Min:</strong> ${Math.min(...values).toFixed(2)}</li>
-                            <li><strong>Max:</strong> ${Math.max(...values).toFixed(2)}</li>
-                            <li><strong>Sample Size:</strong> ${values.length}</li>
-                        </ul>
-                        
-                        <div class="code-block">
-# Specific analysis for ${sampleCol}
-${sampleCol}_data = df['${sampleCol}'].dropna()
-
-# Statistical measures
-mean_val = ${sampleCol}_data.mean()
-std_val = ${sampleCol}_data.std()
-median_val = ${sampleCol}_data.median()
-q1 = ${sampleCol}_data.quantile(0.25)
-q3 = ${sampleCol}_data.quantile(0.75)
-
-print(f"${sampleCol} Analysis:")
-print(f"Mean: {mean_val:.2f}")
-print(f"Std Dev: {std_val:.2f}")
-print(f"Median: {median_val:.2f}")
-print(f"Q1: {q1:.2f}, Q3: {q3:.2f}")
-
-# Normality test
-stat, p_value = stats.normaltest(${sampleCol}_data)
-print(f"Normality test p-value: {p_value:.4f}")
-
-# Visualization
-plt.figure(figsize=(12, 4))
-
-plt.subplot(1, 3, 1)
-plt.hist(${sampleCol}_data, bins=30, alpha=0.7, color='skyblue')
-plt.title('${sampleCol} Distribution')
-plt.xlabel('${sampleCol}')
-plt.ylabel('Frequency')
-
-plt.subplot(1, 3, 2)
-plt.boxplot(${sampleCol}_data)
-plt.title('${sampleCol} Box Plot')
-plt.ylabel('${sampleCol}')
-
-plt.subplot(1, 3, 3)
-stats.probplot(${sampleCol}_data, dist="norm", plot=plt)
-plt.title('Q-Q Plot')
-
-plt.tight_layout()
-plt.show()
-</div>`;
+                if (totalDeaths > 0) {
+                    stats.push({ label: 'Total Deaths', value: totalDeaths.toLocaleString() });
                 }
             }
             
-            // Time series analysis if temporal data exists
-            const timeColumns = Object.keys(filteredData[0] || {}).filter(col => 
-                col.toLowerCase().includes('year') || 
-                col.toLowerCase().includes('date') || 
-                col.toLowerCase().includes('time')
-            );
-            
-            if (timeColumns.length > 0 && numericCols.length > 0) {
-                analysis += `
-                    <h3>📅 Time Series Analysis</h3>
-                    <div class="code-block">
-# Time series analysis
-import datetime as dt
-
-# Convert date column to datetime
-df['date'] = pd.to_datetime(df['${timeColumns[0]}'], errors='coerce')
-df_time = df.dropna(subset=['date', '${numericCols[0]}'])
-
-# Time series visualization
-plt.figure(figsize=(12, 6))
-plt.plot(df_time['date'], df_time['${numericCols[0]}'], marker='o', linewidth=2)
-plt.title('${numericCols[0]} Over Time')
-plt.xlabel('Date')
-plt.ylabel('${numericCols[0]}')
-plt.xticks(rotation=45)
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.show()
-
-# Trend analysis
-from scipy.stats import linregress
-x_numeric = pd.to_numeric(df_time['date'])
-slope, intercept, r_value, p_value, std_err = linregress(x_numeric, df_time['${numericCols[0]}'])
-print(f"Trend Analysis:")
-print(f"Slope: {slope:.4f}")
-print(f"R-squared: {r_value**2:.4f}")
-print(f"P-value: {p_value:.4f}")
-</div>`;
-            }
-            
-            // Correlation analysis if multiple numeric columns
-            if (numericCols.length > 1) {
-                analysis += `
-                    <h3>🔗 Correlation Analysis</h3>
-                    <div class="code-block">
-# Correlation analysis
-numeric_cols = ['${numericCols.join("', '")}']
-correlation_matrix = df[numeric_cols].corr()
-
-print("Correlation Matrix:")
-print(correlation_matrix)
-
-# Heatmap visualization
-plt.figure(figsize=(10, 8))
-sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', center=0,
-            square=True, fmt='.2f')
-plt.title('Correlation Matrix Heatmap')
-plt.tight_layout()
-plt.show()
-
-# Pairwise relationships
-sns.pairplot(df[numeric_cols])
-plt.suptitle('Pairwise Relationships', y=1.02)
-plt.show()
-</div>`;
-            }
-            
-            // Geographic analysis if location data exists
-            const locationColumns = Object.keys(filteredData[0] || {}).filter(col => 
-                col.toLowerCase().includes('country') || 
-                col.toLowerCase().includes('region') || 
-                col.toLowerCase().includes('location')
-            );
-            
-            if (locationColumns.length > 0) {
-                analysis += `
-                    <h3>🌍 Geographic Analysis</h3>
-                    <div class="code-block">
-# Geographic analysis
-location_col = '${locationColumns[0]}'
-value_col = '${numericCols[0] || 'value'}'
-
-# Group by location
-location_stats = df.groupby(location_col)[value_col].agg(['mean', 'sum', 'count']).round(2)
-location_stats = location_stats.sort_values('sum', ascending=False)
-
-print("Top 10 Locations by Total Cases:")
-print(location_stats.head(10))
-
-# Visualization
-plt.figure(figsize=(12, 6))
-top_locations = location_stats.head(10)
-plt.bar(range(len(top_locations)), top_locations['sum'])
-plt.xticks(range(len(top_locations)), top_locations.index, rotation=45)
-plt.title('Top 10 Locations by Total Cases')
-plt.ylabel('Total Cases')
-plt.tight_layout()
-plt.show()
-</div>`;
-            }
-            
-            // Advanced statistical tests
-            analysis += `
-                <h3>🧪 Advanced Statistical Tests</h3>
-                <div class="code-block">
-# Advanced statistical analysis
-from scipy.stats import chi2_contingency, ttest_ind, anova
-
-# Example: Chi-square test for categorical variables
-if len(df.select_dtypes(include=['object']).columns) >= 2:
-    cat_cols = df.select_dtypes(include=['object']).columns[:2]
-    contingency_table = pd.crosstab(df[cat_cols[0]], df[cat_cols[1]])
-    chi2, p_val, dof, expected = chi2_contingency(contingency_table)
-    print(f"Chi-square test between {cat_cols[0]} and {cat_cols[1]}:")
-    print(f"Chi-square statistic: {chi2:.4f}")
-    print(f"P-value: {p_val:.4f}")
-
-# ANOVA test if categorical and numeric variables exist
-if len(numeric_cols) > 0 and len(df.select_dtypes(include=['object']).columns) > 0:
-    cat_col = df.select_dtypes(include=['object']).columns[0]
-    num_col = numeric_cols[0]
-    
-    groups = [df[df[cat_col] == group][num_col].dropna() 
-              for group in df[cat_col].unique() if len(df[df[cat_col] == group]) > 1]
-    
-    if len(groups) > 1:
-        f_stat, p_val = stats.f_oneway(*groups)
-        print(f"\\nANOVA test - {num_col} across {cat_col} groups:")
-        print(f"F-statistic: {f_stat:.4f}")
-        print(f"P-value: {p_val:.4f}")
-</div>
-
-                <h3>🎯 Malaria-Specific Analysis</h3>
-                <div class="code-block">
-# Malaria-specific indicators analysis
-malaria_indicators = [
-    'incidence_rate', 'mortality_rate', 'case_fatality_rate',
-    'cases_per_1000', 'deaths_per_1000', 'prevalence'
-]
-
-# Calculate malaria burden metrics
-def calculate_malaria_burden(df):
-    results = {}
-    
-    # Case fatality rate
-    if 'deaths' in df.columns and 'cases' in df.columns:
-        df['case_fatality_rate'] = (df['deaths'] / df['cases']) * 100
-        results['avg_cfr'] = df['case_fatality_rate'].mean()
-    
-    # Incidence trends
-    if 'year' in df.columns and 'incidence' in df.columns:
-        yearly_incidence = df.groupby('year')['incidence'].mean()
-        results['incidence_trend'] = yearly_incidence.pct_change().mean() * 100
-    
-    # High burden countries (top 20% by cases)
-    if 'country' in df.columns and 'cases' in df.columns:
-        country_cases = df.groupby('country')['cases'].sum()
-        threshold = country_cases.quantile(0.8)
-        results['high_burden_countries'] = country_cases[country_cases >= threshold].index.tolist()
-    
-    return results
-
-malaria_metrics = calculate_malaria_burden(df)
-print("Malaria Burden Analysis:")
-for key, value in malaria_metrics.items():
-    print(f"{key}: {value}")
-
-# Seasonal analysis (if month data available)
-if 'month' in df.columns:
-    seasonal_pattern = df.groupby('month')['cases'].mean()
-    plt.figure(figsize=(10, 6))
-    plt.plot(seasonal_pattern.index, seasonal_pattern.values, marker='o')
-    plt.title('Seasonal Pattern of Malaria Cases')
-    plt.xlabel('Month')
-    plt.ylabel('Average Cases')
-    plt.grid(True, alpha=0.3)
-    plt.show()
-</div>
-
-                <h3>📊 Export Results</h3>
-                <div class="code-block">
-# Export analysis results
-import json
-
-# Save filtered data
-df_filtered = df  # Apply your filters here
-df_filtered.to_excel('malaria_analysis_results.xlsx', index=False)
-
-# Save statistical summary
-summary_stats = df_filtered.describe()
-summary_stats.to_excel('malaria_statistical_summary.xlsx')
-
-# Create analysis report
-report = {
-    'dataset_info': {
-        'total_records': len(df_filtered),
-        'date_range': f"{df_filtered['year'].min()} - {df_filtered['year'].max()}" if 'year' in df_filtered.columns else 'N/A',
-        'countries': df_filtered['country'].nunique() if 'country' in df_filtered.columns else 'N/A'
-    },
-    'key_findings': malaria_metrics
-}
-
-with open('malaria_analysis_report.json', 'w') as f:
-    json.dump(report, f, indent=2)
-
-print("Analysis complete! Files saved:")
-print("- malaria_analysis_results.xlsx")
-print("- malaria_statistical_summary.xlsx") 
-print("- malaria_analysis_report.json")
-</div>`;
-            
-            analysisContent.innerHTML = analysis;
-            analysisSection.style.display = 'block';
-            
-            // Scroll to analysis section
-            analysisSection.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function showError(message) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error';
-            errorDiv.textContent = message;
-            document.querySelector('.container').appendChild(errorDiv);
-            
-            setTimeout(() => {
-                errorDiv.remove();
-            }, 5000);
-        }
-    </script>
-</body>
-</html>
+            sidebarStats.innerHTML = stats.map(stat => `
+                <div class="stat-item">
+                    <span class="stat-label">${stat.label}</span>
+                    <span class="stat-value">${stat.value}</span>
