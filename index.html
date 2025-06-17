@@ -673,11 +673,18 @@
             </div>
 
             <div id="empty-state" class="empty-state">
-                <h2>🏥 Welcome to Sierra Leone HMIS</h2>
-                <p>Upload your malaria surveillance data to begin analysis</p>
+                <h2>🏥 Sierra Leone Routine Malaria Data Dashboard</h2>
+                <p>Upload your routine_data.xlsx or HMIS surveillance file to begin comprehensive analysis</p>
                 <p style="margin-top: 15px; font-size: 0.9rem;">
-                    📋 Expected columns: year, month, adm1-3, hf, conf_com, conf_hf, conf, susp, test_hf, test_com, maltreat, maladm, maldth
+                    📊 <strong>Enhanced Features:</strong> Automatic field mapping, advanced analytics, trend analysis, geographic insights
                 </p>
+                <p style="margin-top: 10px; font-size: 0.85rem; opacity: 0.8;">
+                    📋 <strong>Supported columns:</strong> year, month, district, facility, confirmed, suspected, tested, treated, deaths, under-5 cases, pregnant women
+                </p>
+                <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+                    <h3 style="color: #fff; margin-bottom: 10px;">🚀 Upload Your File Now</h3>
+                    <p style="font-size: 0.9rem;">The dashboard will automatically detect and map your column names to the correct fields</p>
+                </div>
             </div>
 
             <div id="dashboard-content" style="display: none;">
@@ -772,28 +779,59 @@
                     if (file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
                         // Parse CSV/TSV
                         const text = e.target.result;
+                        const delimiter = text.includes('\t') ? '\t' : ',';
                         const lines = text.split('\n');
-                        const headers = lines[0].split('\t').map(h => h.trim());
+                        const headers = lines[0].split(delimiter).map(h => h.trim());
                         
                         data = lines.slice(1).filter(line => line.trim()).map(line => {
-                            const values = line.split('\t');
+                            const values = line.split(delimiter);
                             const row = {};
                             headers.forEach((header, index) => {
-                                row[header] = values[index] ? values[index].trim() : '';
+                                const value = values[index] ? values[index].trim() : '';
+                                // Clean header names - remove quotes and normalize
+                                const cleanHeader = header.replace(/['"]/g, '').toLowerCase().trim();
+                                row[cleanHeader] = value;
                             });
                             return row;
                         });
                     } else {
-                        // Parse Excel
+                        // Parse Excel with enhanced options
                         const arrayBuffer = e.target.result;
-                        const workbook = XLSX.read(arrayBuffer, {type: 'array'});
+                        const workbook = XLSX.read(arrayBuffer, {
+                            type: 'array',
+                            cellText: false,
+                            cellDates: true
+                        });
                         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                        data = XLSX.utils.sheet_to_json(firstSheet);
+                        data = XLSX.utils.sheet_to_json(firstSheet, {
+                            header: 1,
+                            defval: '',
+                            blankrows: false
+                        });
+                        
+                        // Convert array format to object format
+                        if (data.length > 0) {
+                            const headers = data[0].map(h => (h || '').toString().toLowerCase().trim());
+                            data = data.slice(1).filter(row => 
+                                row.some(cell => cell !== null && cell !== undefined && cell !== '')
+                            ).map(row => {
+                                const obj = {};
+                                headers.forEach((header, index) => {
+                                    obj[header] = row[index] || '';
+                                });
+                                return obj;
+                            });
+                        }
                     }
+                    
+                    console.log('📊 Raw data loaded:', data.length, 'rows');
+                    console.log('📋 Sample row:', data[0]);
+                    console.log('🔑 Available columns:', Object.keys(data[0] || {}));
                     
                     processData(data);
                 } catch (error) {
-                    showError('Error reading file: ' + error.message);
+                    console.error('File processing error:', error);
+                    showError('Error reading file: ' + error.message + '. Please check file format and try again.');
                 }
                 document.getElementById('loading').style.display = 'none';
             };
@@ -806,47 +844,142 @@
         }
 
         function processData(data) {
-            // Clean and process the data with enhanced validation for 2015-2023
+            console.log('🔄 Processing routine data...');
+            
+            // Enhanced data cleaning for routine surveillance data
             rawData = data.filter(row => {
-                // Only keep rows with valid year and month data
-                const year = parseInt(row.year);
-                const month = parseInt(row.month);
-                return year >= 2015 && year <= 2023 && month >= 1 && month <= 12;
+                // More flexible filtering for routine data
+                const year = parseInt(row.year || row.Year || row.YEAR);
+                const month = parseInt(row.month || row.Month || row.MONTH);
+                return !isNaN(year) && !isNaN(month) && 
+                       year >= 2015 && year <= 2023 && 
+                       month >= 1 && month <= 12;
             }).map(row => {
-                // Convert numeric fields with better handling
-                const numericFields = ['conf_com', 'conf_hf', 'conf', 'susp', 'test_hf', 'test_com', 'test', 
-                                     'maltreat_com', 'maltreat_hf', 'maltreat', 'maladm', 'maldth', 'allout', 
-                                     'pres_com', 'pres_hf', 'pres'];
+                // Enhanced field mapping for routine data
+                const mappedRow = {};
+                
+                // Map common field variations
+                const fieldMappings = {
+                    'year': ['year', 'Year', 'YEAR'],
+                    'month': ['month', 'Month', 'MONTH'],
+                    'adm1': ['adm1', 'district', 'District', 'DISTRICT'],
+                    'adm2': ['adm2', 'council', 'Council', 'COUNCIL'],
+                    'adm3': ['adm3', 'chiefdom', 'Chiefdom', 'CHIEFDOM', 'city'],
+                    'hf': ['hf', 'facility', 'health_facility', 'facility_name'],
+                    'hf_uid': ['hf_uid', 'facility_id', 'facility_code'],
+                    'conf': ['conf', 'confirmed', 'confirmed_cases', 'total_confirmed'],
+                    'conf_com': ['conf_com', 'confirmed_community', 'comm_confirmed'],
+                    'conf_hf': ['conf_hf', 'confirmed_facility', 'facility_confirmed'],
+                    'susp': ['susp', 'suspected', 'suspected_cases', 'total_suspected'],
+                    'test': ['test', 'tested', 'tests_performed', 'total_tests'],
+                    'test_com': ['test_com', 'community_tests', 'comm_tests'],
+                    'test_hf': ['test_hf', 'facility_tests', 'hf_tests'],
+                    'maltreat': ['maltreat', 'treated', 'cases_treated', 'total_treated'],
+                    'maltreat_com': ['maltreat_com', 'community_treated', 'comm_treated'],
+                    'maltreat_hf': ['maltreat_hf', 'facility_treated', 'hf_treated'],
+                    'maladm': ['maladm', 'admitted', 'admissions', 'severe_cases'],
+                    'maldth': ['maldth', 'deaths', 'malaria_deaths', 'total_deaths'],
+                    'population': ['population', 'pop', 'total_population'],
+                    'u5_conf': ['u5_conf', 'under5_confirmed', 'u5_confirmed'],
+                    'u5_deaths': ['u5_deaths', 'under5_deaths', 'u5_deaths'],
+                    'pregnant_conf': ['pregnant_conf', 'pregnant_confirmed', 'anc_confirmed'],
+                    'itn_distributed': ['itn_distributed', 'itn_dist', 'nets_distributed'],
+                    'irs_coverage': ['irs_coverage', 'irs_cov', 'sprayed_structures']
+                };
+                
+                // Apply field mappings
+                Object.keys(fieldMappings).forEach(standardField => {
+                    const possibleFields = fieldMappings[standardField];
+                    for (let field of possibleFields) {
+                        if (row[field] !== undefined && row[field] !== null && row[field] !== '') {
+                            mappedRow[standardField] = row[field];
+                            break;
+                        }
+                    }
+                });
+                
+                // Convert numeric fields with enhanced validation
+                const numericFields = [
+                    'conf', 'conf_com', 'conf_hf', 'susp', 'test', 'test_com', 'test_hf',
+                    'maltreat', 'maltreat_com', 'maltreat_hf', 'maladm', 'maldth',
+                    'population', 'u5_conf', 'u5_deaths', 'pregnant_conf',
+                    'itn_distributed', 'irs_coverage'
+                ];
                 
                 numericFields.forEach(field => {
-                    const value = row[field];
-                    if (value === '' || value === null || value === undefined) {
-                        row[field] = 0;
+                    if (mappedRow[field] !== undefined) {
+                        const value = mappedRow[field];
+                        if (value === '' || value === null || value === undefined || value === 'N/A') {
+                            mappedRow[field] = 0;
+                        } else {
+                            const numValue = parseFloat(String(value).replace(/[,%]/g, ''));
+                            mappedRow[field] = isNaN(numValue) ? 0 : numValue;
+                        }
                     } else {
-                        row[field] = parseFloat(value) || 0;
+                        mappedRow[field] = 0;
                     }
                 });
                 
-                // Ensure year and month are numbers
-                row.year = parseInt(row.year);
-                row.month = parseInt(row.month);
+                // Ensure core fields exist
+                mappedRow.year = parseInt(mappedRow.year) || 0;
+                mappedRow.month = parseInt(mappedRow.month) || 0;
                 
                 // Clean text fields
-                ['adm1', 'adm2', 'adm3', 'hf', 'hf_uid'].forEach(field => {
-                    if (row[field]) {
-                        row[field] = row[field].toString().trim();
+                const textFields = ['adm1', 'adm2', 'adm3', 'hf', 'hf_uid'];
+                textFields.forEach(field => {
+                    if (mappedRow[field]) {
+                        mappedRow[field] = String(mappedRow[field]).trim();
                     }
                 });
                 
-                // Add calculated fields
-                row.YM = parseInt(row.YM) || (row.year * 100 + row.month);
+                // Calculate derived fields
+                mappedRow.YM = mappedRow.year * 100 + mappedRow.month;
                 
-                return row;
+                // Calculate rates and percentages
+                if (mappedRow.test > 0) {
+                    mappedRow.positivity_rate = (mappedRow.conf / mappedRow.test) * 100;
+                } else {
+                    mappedRow.positivity_rate = 0;
+                }
+                
+                if (mappedRow.conf > 0) {
+                    mappedRow.case_fatality_rate = (mappedRow.maldth / mappedRow.conf) * 100;
+                    mappedRow.treatment_rate = (mappedRow.maltreat / mappedRow.conf) * 100;
+                    mappedRow.admission_rate = (mappedRow.maladm / mappedRow.conf) * 100;
+                } else {
+                    mappedRow.case_fatality_rate = 0;
+                    mappedRow.treatment_rate = 0;
+                    mappedRow.admission_rate = 0;
+                }
+                
+                if (mappedRow.susp > 0) {
+                    mappedRow.testing_rate = (mappedRow.test / mappedRow.susp) * 100;
+                } else {
+                    mappedRow.testing_rate = 0;
+                }
+                
+                // Copy any additional fields not mapped
+                Object.keys(row).forEach(key => {
+                    const lowerKey = key.toLowerCase();
+                    if (!mappedRow.hasOwnProperty(lowerKey) && !mappedRow.hasOwnProperty(key)) {
+                        mappedRow[lowerKey] = row[key];
+                    }
+                });
+                
+                return mappedRow;
             });
             
-            console.log(`✅ Processed ${rawData.length} records from years 2015-2023`);
-            console.log(`📅 Year range in data: ${Math.min(...rawData.map(r => r.year))}-${Math.max(...rawData.map(r => r.year))}`);
+            console.log(`✅ Processed ${rawData.length} routine surveillance records`);
+            console.log(`📅 Year range: ${Math.min(...rawData.map(r => r.year))}-${Math.max(...rawData.map(r => r.year))}`);
             console.log(`📊 Month range: ${Math.min(...rawData.map(r => r.month))}-${Math.max(...rawData.map(r => r.month))}`);
+            console.log(`🏥 Facilities: ${new Set(rawData.map(r => r.hf)).size}`);
+            console.log(`🌍 Districts: ${new Set(rawData.map(r => r.adm1)).size}`);
+            
+            // Log sample of processed data
+            if (rawData.length > 0) {
+                console.log('📋 Sample processed record:', rawData[0]);
+                console.log('🔑 Final columns:', Object.keys(rawData[0]).sort());
+            }
             
             filteredData = [...rawData];
             
@@ -951,24 +1084,44 @@
         function updateKPIs() {
             const kpiGrid = document.getElementById('kpi-grid');
             
-            const totalConf = filteredData.reduce((sum, row) => sum + row.conf, 0);
-            const totalSusp = filteredData.reduce((sum, row) => sum + row.susp, 0);
-            const totalTest = filteredData.reduce((sum, row) => sum + row.test, 0);
-            const totalDeaths = filteredData.reduce((sum, row) => sum + row.maldth, 0);
+            const totalConf = filteredData.reduce((sum, row) => sum + (row.conf || 0), 0);
+            const totalSusp = filteredData.reduce((sum, row) => sum + (row.susp || 0), 0);
+            const totalTest = filteredData.reduce((sum, row) => sum + (row.test || 0), 0);
+            const totalDeaths = filteredData.reduce((sum, row) => sum + (row.maldth || 0), 0);
+            const totalTreated = filteredData.reduce((sum, row) => sum + (row.maltreat || 0), 0);
+            const totalU5Conf = filteredData.reduce((sum, row) => sum + (row.u5_conf || 0), 0);
             
             const positivityRate = totalTest > 0 ? ((totalConf / totalTest) * 100).toFixed(1) : 0;
             const cfr = totalConf > 0 ? ((totalDeaths / totalConf) * 100).toFixed(1) : 0;
+            const treatmentRate = totalConf > 0 ? ((totalTreated / totalConf) * 100).toFixed(1) : 0;
+            const u5Percentage = totalConf > 0 ? ((totalU5Conf / totalConf) * 100).toFixed(1) : 0;
             
             const kpis = [
-                { label: 'Confirmed', value: totalConf.toLocaleString() },
-                { label: 'Suspected', value: totalSusp.toLocaleString() },
-                { label: 'Positivity %', value: positivityRate + '%' },
-                { label: 'CFR %', value: cfr + '%' }
+                { 
+                    label: 'Confirmed', 
+                    value: totalConf.toLocaleString(),
+                    trend: totalConf > 1000 ? '⬆️' : totalConf > 500 ? '➡️' : '⬇️'
+                },
+                { 
+                    label: 'Positivity %', 
+                    value: positivityRate + '%',
+                    trend: positivityRate > 30 ? '🔴' : positivityRate > 15 ? '🟡' : '🟢'
+                },
+                { 
+                    label: 'CFR %', 
+                    value: cfr + '%',
+                    trend: cfr > 2 ? '🔴' : cfr > 1 ? '🟡' : '🟢'
+                },
+                { 
+                    label: 'Under-5 %', 
+                    value: u5Percentage + '%',
+                    trend: u5Percentage > 60 ? '⚠️' : '📊'
+                }
             ];
             
             kpiGrid.innerHTML = kpis.map(kpi => `
                 <div class="kpi-card">
-                    <div class="kpi-value">${kpi.value}</div>
+                    <div class="kpi-value">${kpi.value} ${kpi.trend}</div>
                     <div class="kpi-label">${kpi.label}</div>
                 </div>
             `).join('');
