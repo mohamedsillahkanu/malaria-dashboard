@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sierra Leone Malaria Surveillance Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles - 25% */
+        .sidebar {
+            width: 25%;
+            min-width: 320px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 4px 0 25px rgba(0, 0, 0, 0.15);
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        .sidebar-header {
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .flag-icon {
+            font-size: 1.5rem;
+            margin-right: 8px;
+        }
+
+        .sidebar-content {
+            padding: 15px;
+        }
+
+        .upload-section {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            border: 2px dashed #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #1e3c72;
+            transform: translateY(-1px);
+        }
+
+        .file-input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 10px 18px;
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 60, 114, 0.3);
+        }
+
+        .filters-section {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .filters-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #1e3c72;
+        }
+
+        .filter-group {
+            margin-bottom: 12px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #555;
+            font-size: 0.85rem;
+        }
+
+        .filter-group select, .filter-group input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .filter-group select:focus, .filter-group input:focus {
+            outline: none;
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+        }
+
+        .controls-section {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 60, 114, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #27ae60, #219a52);
+        }
+
+        .kpi-section {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .kpi-card {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .kpi-label {
+            font-size: 0.7rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Main Content - 75% */
+        .main-content {
+            width: 75%;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        .main-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .main-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chart-container.full-width {
+            grid-column: 1 / -1;
+            min-height: 450px;
+        }
+
+        .chart-container.large {
+            min-height: 500px;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1e3c72;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            position: relative;
+            min-height: 300px;
+        }
+
+        .chart-wrapper canvas {
+            max-height: 100% !important;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border-left: 5px solid #1e3c72;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1e3c72;
+            margin-bottom: 8px;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table-section {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .table-header {
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 20px;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            color: #333;
+            font-size: 0.8rem;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .empty-state h2 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+            font-size: 0.85rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                min-width: auto;
+                max-height: none;
+            }
+            
+            .main-content {
+                width: 100%;
+            }
+        }
+
+        /* Custom scrollbar */
+        .sidebar::-webkit-scrollbar,
+        .main-content::-webkit-scrollbar,
+        .table-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track,
+        .main-content::-webkit-scrollbar-track,
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb,
+        .main-content::-webkit-scrollbar-thumb,
+        .table-container::-webkit-scrollbar-thumb {
+            background: #1e3c72;
+            border-radius: 3px;
+        }
+
+        /* Animation */
+        .chart-container {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .seasonal-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .high-season { background-color: #e74c3c; }
+        .medium-season { background-color: #f39c12; }
+        .low-season { background-color: #27ae60; }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1><span class="flag-icon">🇸🇱</span>Sierra Leone</h1>
+                <p>Malaria Surveillance System</p>
+            </div>
+            
+            <div class="sidebar-content">
+                <!-- Upload Section -->
+                <div class="upload-section">
+                    <div class="file-input-container">
+                        <label for="file-input" class="file-input-label">
+                            📊 Upload HMIS Data
+                        </label>
+                        <input type="file" id="file-input" class="file-input" accept=".xlsx,.xls,.csv,.txt">
+                        <p style="color: #666; text-align: center; font-size: 0.75rem; margin-top: 4px;">
+                            Excel, CSV, or Tab-delimited files
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Filters Section -->
+                <div class="filters-section" id="filters-section">
+                    <div class="filters-title">🔍 Data Filters</div>
+                    
+                    <div class="filter-group">
+                        <label for="year-filter">Year</label>
+                        <select id="year-filter">
+                            <option value="">All Years</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="month-filter">Month</label>
+                        <select id="month-filter">
+                            <option value="">All Months</option>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="district-filter">District (ADM1)</label>
+                        <select id="district-filter">
+                            <option value="">All Districts</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="council-filter">Council (ADM2)</label>
+                        <select id="council-filter">
+                            <option value="">All Councils</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="city-filter">City/Chiefdom (ADM3)</label>
+                        <select id="city-filter">
+                            <option value="">All Cities/Chiefdoms</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="hf-filter">Health Facility</label>
+                        <select id="hf-filter">
+                            <option value="">All Health Facilities</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Controls Section -->
+                <div class="controls-section" id="controls-section">
+                    <button class="btn" onclick="applyFilters()">🔄 Apply Filters</button>
+                    <button class="btn btn-secondary" onclick="resetFilters()">🔄 Reset All</button>
+                    <button class="btn btn-success" onclick="exportData()">💾 Export Data</button>
+                    <button class="btn" onclick="generateReport()">📊 Generate Report</button>
+                </div>
+
+                <!-- KPI Section -->
+                <div class="kpi-section" id="kpi-section">
+                    <h3 style="font-size: 0.9rem; margin-bottom: 10px; text-align: center;">📈 Key Indicators</h3>
+                    <div class="kpi-grid" id="kpi-grid">
+                        <!-- KPIs will be populated here -->
+                    </div>
+                </div>
+
+                <div class="loading" id="loading">
+                    🔄 Processing HMIS data...
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="main-header">
+                <h1>Health Management Information System</h1>
+                <p>Malaria Surveillance Dashboard - Ministry of Health and Sanitation</p>
+            </div>
+
+            <div id="empty-state" class="empty-state">
+                <h2>🏥 Welcome to Sierra Leone HMIS</h2>
+                <p>Upload your malaria surveillance data to begin analysis</p>
+                <p style="margin-top: 15px; font-size: 0.9rem;">
+                    📋 Expected columns: year, month, adm1-3, hf, conf_com, conf_hf, conf, susp, test_hf, test_com, maltreat, maladm, maldth
+                </p>
+            </div>
+
+            <div id="dashboard-content" style="display: none;">
+                <!-- Key Metrics Grid -->
+                <div class="metrics-grid" id="metrics-grid">
+                    <!-- Metrics will be populated here -->
+                </div>
+
+                <!-- Main Charts Grid -->
+                <div class="dashboard-grid">
+                    <div class="chart-container">
+                        <div class="chart-title">📈 Monthly Confirmed Cases Trend</div>
+                        <div class="chart-wrapper">
+                            <canvas id="trendsChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-title">🧪 Testing Performance</div>
+                        <div class="chart-wrapper">
+                            <canvas id="testingChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-title">🌍 Geographic Distribution</div>
+                        <div class="chart-wrapper">
+                            <canvas id="geoChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-title">💊 Treatment Outcomes</div>
+                        <div class="chart-wrapper">
+                            <canvas id="treatmentChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Full Width Charts -->
+                <div class="dashboard-grid">
+                    <div class="chart-container full-width">
+                        <div class="chart-title">📊 Comprehensive Surveillance Metrics</div>
+                        <div class="chart-wrapper">
+                            <canvas id="comprehensiveChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="chart-container full-width">
+                        <div class="chart-title">🔄 Testing vs Treatment Pipeline</div>
+                        <div class="chart-wrapper">
+                            <canvas id="pipelineChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="data-table-section" id="data-table-section">
+                    <div class="table-header">📋 Health Facility Reports (Filtered Data)</div>
+                    <div class="table-container">
+                        <table id="data-table">
+                            <thead id="table-head"></thead>
+                            <tbody id="table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let rawData = [];
+        let filteredData = [];
+        let charts = {};
+
+        // File upload handler
+        document.getElementById('file-input').addEventListener('change', handleFile);
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('empty-state').style.display = 'none';
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data;
+                    if (file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
+                        // Parse CSV/TSV
+                        const text = e.target.result;
+                        const lines = text.split('\n');
+                        const headers = lines[0].split('\t').map(h => h.trim());
+                        
+                        data = lines.slice(1).filter(line => line.trim()).map(line => {
+                            const values = line.split('\t');
+                            const row = {};
+                            headers.forEach((header, index) => {
+                                row[header] = values[index] ? values[index].trim() : '';
+                            });
+                            return row;
+                        });
+                    } else {
+                        // Parse Excel
+                        const arrayBuffer = e.target.result;
+                        const workbook = XLSX.read(arrayBuffer, {type: 'array'});
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        data = XLSX.utils.sheet_to_json(firstSheet);
+                    }
+                    
+                    processData(data);
+                } catch (error) {
+                    showError('Error reading file: ' + error.message);
+                }
+                document.getElementById('loading').style.display = 'none';
+            };
+            
+            if (file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function processData(data) {
+            // Clean and process the data
+            rawData = data.filter(row => row.year && row.month).map(row => {
+                // Convert numeric fields
+                const numericFields = ['conf_com', 'conf_hf', 'conf', 'susp', 'test_hf', 'test_com', 'test', 
+                                     'maltreat_com', 'maltreat_hf', 'maltreat', 'maladm', 'maldth', 'allout', 
+                                     'pres_com', 'pres_hf', 'pres'];
+                
+                numericFields.forEach(field => {
+                    row[field] = parseFloat(row[field]) || 0;
+                });
+                
+                // Ensure year and month are numbers
+                row.year = parseInt(row.year);
+                row.month = parseInt(row.month);
+                
+                return row;
+            });
+            
+            filteredData = [...rawData];
+            
+            populateFilters();
+            updateDashboard();
+            
+            // Show all sections
+            document.getElementById('filters-section').style.display = 'block';
+            document.getElementById('controls-section').style.display = 'block';
+            document.getElementById('kpi-section').style.display = 'block';
+            document.getElementById('dashboard-content').style.display = 'block';
+        }
+
+        function populateFilters() {
+            // Populate year filter
+            const years = [...new Set(rawData.map(row => row.year))].filter(y => y).sort().reverse();
+            populateSelect('year-filter', years);
+            
+            // Populate geographic filters
+            const districts = [...new Set(rawData.map(row => row.adm1))].filter(d => d).sort();
+            populateSelect('district-filter', districts);
+            
+            const councils = [...new Set(rawData.map(row => row.adm2))].filter(c => c).sort();
+            populateSelect('council-filter', councils);
+            
+            const cities = [...new Set(rawData.map(row => row.adm3))].filter(c => c).sort();
+            populateSelect('city-filter', cities);
+            
+            const facilities = [...new Set(rawData.map(row => row.hf))].filter(f => f).sort();
+            populateSelect('hf-filter', facilities);
+        }
+
+        function populateSelect(selectId, options) {
+            const select = document.getElementById(selectId);
+            const currentValue = select.value;
+            
+            // Clear existing options except first
+            while (select.children.length > 1) {
+                select.removeChild(select.lastChild);
+            }
+            
+            options.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option;
+                opt.textContent = option;
+                select.appendChild(opt);
+            });
+            
+            select.value = currentValue;
+        }
+
+        function applyFilters() {
+            const yearFilter = document.getElementById('year-filter').value;
+            const monthFilter = document.getElementById('month-filter').value;
+            const districtFilter = document.getElementById('district-filter').value;
+            const councilFilter = document.getElementById('council-filter').value;
+            const cityFilter = document.getElementById('city-filter').value;
+            const hfFilter = document.getElementById('hf-filter').value;
+            
+            filteredData = rawData.filter(row => {
+                return (!yearFilter || row.year == yearFilter) &&
+                       (!monthFilter || row.month == monthFilter) &&
+                       (!districtFilter || row.adm1 == districtFilter) &&
+                       (!councilFilter || row.adm2 == councilFilter) &&
+                       (!cityFilter || row.adm3 == cityFilter) &&
+                       (!hfFilter || row.hf == hfFilter);
+            });
+            
+            updateDashboard();
+        }
+
+        function resetFilters() {
+            document.getElementById('year-filter').value = '';
+            document.getElementById('month-filter').value = '';
+            document.getElementById('district-filter').value = '';
+            document.getElementById('council-filter').value = '';
+            document.getElementById('city-filter').value = '';
+            document.getElementById('hf-filter').value = '';
+            
+            filteredData = [...rawData];
+            updateDashboard();
+        }
+
+        function updateDashboard() {
+            updateKPIs();
+            updateMetrics();
+            updateCharts();
+            updateTable();
+        }
+
+        function updateKPIs() {
+            const kpiGrid = document.getElementById('kpi-grid');
+            
+            const totalConf = filteredData.reduce((sum, row) => sum + row.conf, 0);
+            const totalSusp = filteredData.reduce((sum, row) => sum + row.susp, 0);
+            const totalTest = filteredData.reduce((sum, row) => sum + row.test, 0);
+            const totalDeaths = filteredData.reduce((sum, row) => sum + row.maldth, 0);
+            
+            const positivityRate = totalTest > 0 ? ((totalConf / totalTest) * 100).toFixed(1) : 0;
+            const cfr = totalConf > 0 ? ((totalDeaths / totalConf) * 100).toFixed(1) : 0;
+            
+            const kpis = [
+                { label: 'Confirmed', value: totalConf.toLocaleString() },
+                { label: 'Suspected', value: totalSusp.toLocaleString() },
+                { label: 'Positivity %', value: positivityRate + '%' },
+                { label: 'CFR %', value: cfr + '%' }
+            ];
+            
+            kpiGrid.innerHTML = kpis.map(kpi => `
+                <div class="kpi-card">
+                    <div class="kpi-value">${kpi.value}</div>
+                    <div class="kpi-label">${kpi.label}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateMetrics() {
+            const metricsGrid = document.getElementById('metrics-grid');
+            
+            const totalConf = filteredData.reduce((sum, row) => sum + row.conf, 0);
+            const totalSusp = filteredData.reduce((sum, row) => sum + row.susp, 0);
+            const totalTest = filteredData.reduce((sum, row) => sum + row.test, 0);
+            const totalTreated = filteredData.reduce((sum, row) => sum + row.maltreat, 0);
+            const totalDeaths = filteredData.reduce((sum, row) => sum + row.maldth, 0);
+            const totalAdmissions = filteredData.reduce((sum, row) => sum + row.maladm, 0);
+            
+            const positivityRate = totalTest > 0 ? ((totalConf / totalTest) * 100).toFixed(1) : 0;
+            const treatmentRate = totalConf > 0 ? ((totalTreated / totalConf) * 100).toFixed(1) : 0;
+            const cfr = totalConf > 0 ? ((totalDeaths / totalConf) * 100).toFixed(1) : 0;
+            const admissionRate = totalConf > 0 ? ((totalAdmissions / totalConf) * 100).toFixed(1) : 0;
+            
+            const facilities = new Set(filteredData.map(row => row.hf)).size;
+            const timeRange = filteredData.length > 0 ? 
+                `${Math.min(...filteredData.map(r => r.year))}-${Math.max(...filteredData.map(r => r.year))}` : 'N/A';
+            
+            const metrics = [
+                { label: 'Total Confirmed Cases', value: totalConf.toLocaleString() },
+                { label: 'Total Suspected Cases', value: totalSusp.toLocaleString() },
+                { label: 'Test Positivity Rate', value: positivityRate + '%' },
+                { label: 'Treatment Coverage', value: treatmentRate + '%' },
+                { label: 'Case Fatality Rate', value: cfr + '%' },
+                { label: 'Admission Rate', value: admissionRate + '%' },
+                { label: 'Reporting Facilities', value: facilities },
+                { label: 'Data Period', value: timeRange }
+            ];
+            
+            metricsGrid.innerHTML = metrics.map(metric => `
+                <div class="metric-card">
+                    <div class="metric-value">${metric.value}</div>
+                    <div class="metric-label">${metric.label}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateCharts() {
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => {
+                if (chart && typeof chart.destroy === 'function') {
+                    chart.destroy();
+                }
+            });
+            charts = {};
+            
+            createTrendsChart();
+            createTestingChart();
+            createGeoChart();
+            createTreatmentChart();
+            createComprehensiveChart();
+            createPipelineChart();
+        }
+
+        function createTrendsChart() {
+            const ctx = document.getElementById('trendsChart');
+            if (!ctx) return;
+            
+            // Group by year-month
+            const monthlyData = filteredData.reduce((acc, row) => {
+                const key = `${row.year}-${String(row.month).padStart(2, '0')}`;
+                if (!acc[key]) {
+                    acc[key] = { conf: 0, susp: 0, test: 0, deaths: 0 };
+                }
+                acc[key].conf += row.conf || 0;
+                acc[key].susp += row.susp || 0;
+                acc[key].test += row.test || 0;
+                acc[key].deaths += row.maldth || 0;
+                return acc;
+            }, {});
+            
+            const months = Object.keys(monthlyData).sort();
+            const confData = months.map(month => monthlyData[month].conf);
+            const suspData = months.map(month => monthlyData[month].susp);
+            const deathsData = months.map(month => monthlyData[month].deaths);
+            
+            charts.trendsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'Confirmed Cases',
+                            data: confData,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Suspected Cases',
+                            data: suspData,
+                            borderColor: '#f39c12',
+                            backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Deaths',
+                            data: deathsData,
+                            borderColor: '#2c3e50',
+                            backgroundColor: 'rgba(44, 62, 80, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Month',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Cases',
+                                font: { weight: 'bold' }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createTestingChart() {
+            const ctx = document.getElementById('testingChart');
+            if (!ctx) return;
+            
+            // Calculate testing metrics
+            const monthlyData = filteredData.reduce((acc, row) => {
+                const key = `${row.year}-${String(row.month).padStart(2, '0')}`;
+                if (!acc[key]) {
+                    acc[key] = { test: 0, conf: 0 };
+                }
+                acc[key].test += row.test || 0;
+                acc[key].conf += row.conf || 0;
+                return acc;
+            }, {});
+            
+            const months = Object.keys(monthlyData).sort();
+            const testData = months.map(month => monthlyData[month].test);
+            const positivityData = months.map(month => {
+                const tests = monthlyData[month].test;
+                const conf = monthlyData[month].conf;
+                return tests > 0 ? (conf / tests) * 100 : 0;
+            });
+            
+            charts.testingChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Tests Performed',
+                            data: testData,
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                            borderColor: '#3498db',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Positivity Rate (%)',
+                            data: positivityData,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Month',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Tests',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Positivity Rate (%)',
+                                font: { weight: 'bold' }
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createGeoChart() {
+            const ctx = document.getElementById('geoChart');
+            if (!ctx) return;
+            
+            // Group by district
+            const districtData = filteredData.reduce((acc, row) => {
+                const district = row.adm1 || 'Unknown';
+                if (!acc[district]) {
+                    acc[district] = 0;
+                }
+                acc[district] += row.conf || 0;
+                return acc;
+            }, {});
+            
+            const districts = Object.keys(districtData).slice(0, 10);
+            const values = districts.map(district => districtData[district]);
+            
+            charts.geoChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: districts,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            '#1e3c72', '#2a5298', '#3498db', '#52c41a',
+                            '#faad14', '#fa8c16', '#f5222d', '#eb2f96',
+                            '#722ed1', '#13c2c2'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: { size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.raw / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.raw.toLocaleString()} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createTreatmentChart() {
+            const ctx = document.getElementById('treatmentChart');
+            if (!ctx) return;
+            
+            // Calculate treatment outcomes
+            const monthlyData = filteredData.reduce((acc, row) => {
+                const key = `${row.year}-${String(row.month).padStart(2, '0')}`;
+                if (!acc[key]) {
+                    acc[key] = { conf: 0, treated: 0, admitted: 0, deaths: 0 };
+                }
+                acc[key].conf += row.conf || 0;
+                acc[key].treated += row.maltreat || 0;
+                acc[key].admitted += row.maladm || 0;
+                acc[key].deaths += row.maldth || 0;
+                return acc;
+            }, {});
+            
+            const months = Object.keys(monthlyData).sort();
+            const treatmentRate = months.map(month => {
+                const data = monthlyData[month];
+                return data.conf > 0 ? (data.treated / data.conf) * 100 : 0;
+            });
+            const admissionRate = months.map(month => {
+                const data = monthlyData[month];
+                return data.conf > 0 ? (data.admitted / data.conf) * 100 : 0;
+            });
+            const caseFatalityRate = months.map(month => {
+                const data = monthlyData[month];
+                return data.conf > 0 ? (data.deaths / data.conf) * 100 : 0;
+            });
+            
+            charts.treatmentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'Treatment Rate (%)',
+                            data: treatmentRate,
+                            borderColor: '#27ae60',
+                            backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Admission Rate (%)',
+                            data: admissionRate,
+                            borderColor: '#f39c12',
+                            backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Case Fatality Rate (%)',
+                            data: caseFatalityRate,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Month',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Rate (%)',
+                                font: { weight: 'bold' }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createComprehensiveChart() {
+            const ctx = document.getElementById('comprehensiveChart');
+            if (!ctx) return;
+            
+            // Monthly comprehensive data
+            const monthlyData = filteredData.reduce((acc, row) => {
+                const key = `${row.year}-${String(row.month).padStart(2, '0')}`;
+                if (!acc[key]) {
+                    acc[key] = { conf: 0, susp: 0, test: 0, treated: 0 };
+                }
+                acc[key].conf += row.conf || 0;
+                acc[key].susp += row.susp || 0;
+                acc[key].test += row.test || 0;
+                acc[key].treated += row.maltreat || 0;
+                return acc;
+            }, {});
+            
+            const months = Object.keys(monthlyData).sort();
+            const confData = months.map(month => monthlyData[month].conf);
+            const suspData = months.map(month => monthlyData[month].susp);
+            const testData = months.map(month => monthlyData[month].test);
+            const treatedData = months.map(month => monthlyData[month].treated);
+            
+            charts.comprehensiveChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'Suspected Cases',
+                            data: suspData,
+                            backgroundColor: 'rgba(243, 156, 18, 0.7)',
+                            borderColor: '#f39c12',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Tests Performed',
+                            data: testData,
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                            borderColor: '#3498db',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Confirmed Cases',
+                            data: confData,
+                            backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                            borderColor: '#e74c3c',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Treated Cases',
+                            data: treatedData,
+                            backgroundColor: 'rgba(39, 174, 96, 0.7)',
+                            borderColor: '#27ae60',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Month',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Cases',
+                                font: { weight: 'bold' }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createPipelineChart() {
+            const ctx = document.getElementById('pipelineChart');
+            if (!ctx) return;
+            
+            // Calculate pipeline metrics
+            const totalSusp = filteredData.reduce((sum, row) => sum + (row.susp || 0), 0);
+            const totalTest = filteredData.reduce((sum, row) => sum + (row.test || 0), 0);
+            const totalConf = filteredData.reduce((sum, row) => sum + (row.conf || 0), 0);
+            const totalTreated = filteredData.reduce((sum, row) => sum + (row.maltreat || 0), 0);
+            
+            const testingRate = totalSusp > 0 ? (totalTest / totalSusp) * 100 : 0;
+            const positivityRate = totalTest > 0 ? (totalConf / totalTest) * 100 : 0;
+            const treatmentRate = totalConf > 0 ? (totalTreated / totalConf) * 100 : 0;
+            
+            charts.pipelineChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Suspected Cases', 'Tests Performed', 'Confirmed Cases', 'Treated Cases'],
+                    datasets: [{
+                        label: 'Case Management Pipeline',
+                        data: [totalSusp, totalTest, totalConf, totalTreated],
+                        backgroundColor: [
+                            'rgba(243, 156, 18, 0.8)',
+                            'rgba(52, 152, 219, 0.8)',
+                            'rgba(231, 76, 60, 0.8)',
+                            'rgba(39, 174, 96, 0.8)'
+                        ],
+                        borderColor: [
+                            '#f39c12',
+                            '#3498db',
+                            '#e74c3c',
+                            '#27ae60'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    let percentage = '';
+                                    if (context.dataIndex === 1) {
+                                        percentage = ` (${testingRate.toFixed(1)}% of suspected)`;
+                                    } else if (context.dataIndex === 2) {
+                                        percentage = ` (${positivityRate.toFixed(1)}% of tested)`;
+                                    } else if (context.dataIndex === 3) {
+                                        percentage = ` (${treatmentRate.toFixed(1)}% of confirmed)`;
+                                    }
+                                    return `${context.label}: ${value.toLocaleString()}${percentage}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Case Management Steps',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Cases',
+                                font: { weight: 'bold' }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTable() {
+            const table = document.getElementById('data-table');
+            const thead = document.getElementById('table-head');
+            const tbody = document.getElementById('table-body');
+            
+            if (filteredData.length === 0) {
+                thead.innerHTML = '';
+                tbody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 50px; color: #999;">No data to display</td></tr>';
+                return;
+            }
+            
+            // Show key columns
+            const keyColumns = ['year', 'month', 'adm1', 'adm2', 'adm3', 'hf', 'conf', 'susp', 'test', 'maltreat', 'maldth'];
+            const availableColumns = keyColumns.filter(col => filteredData[0].hasOwnProperty(col));
+            
+            // Create header
+            thead.innerHTML = `<tr>${availableColumns.map(col => 
+                `<th>${col.toUpperCase().replace(/_/g, ' ')}</th>`
+            ).join('')}</tr>`;
+            
+            // Create rows (limit to first 100 for performance)
+            tbody.innerHTML = filteredData.slice(0, 100).map(row => 
+                `<tr>${availableColumns.map(col => {
+                    let value = row[col] || '';
+                    if (typeof value === 'number') {
+                        value = value.toLocaleString();
+                    }
+                    return `<td>${value}</td>`;
+                }).join('')}</tr>`
+            ).join('');
+        }
+
+        function exportData() {
+            if (filteredData.length === 0) {
+                alert('No data to export!');
+                return;
+            }
+            
+            const headers = Object.keys(filteredData[0]);
+            const csvContent = [
+                headers.join(','),
+                ...filteredData.map(row => 
+                    headers.map(header => `"${row[header] || ''}"`).join(',')
+                )
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `sierra_leone_malaria_data_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function generateReport() {
+            if (filteredData.length === 0) {
+                alert('No data available for report generation!');
+                return;
+            }
+            
+            // Calculate comprehensive statistics
+            const totalConf = filteredData.reduce((sum, row) => sum + row.conf, 0);
+            const totalSusp = filteredData.reduce((sum, row) => sum + row.susp, 0);
+            const totalTest = filteredData.reduce((sum, row) => sum + row.test, 0);
+            const totalTreated = filteredData.reduce((sum, row) => sum + row.maltreat, 0);
+            const totalDeaths = filteredData.reduce((sum, row) => sum + row.maldth, 0);
+            const totalAdmissions = filteredData.reduce((sum, row) => sum + row.maladm, 0);
+            
+            const positivityRate = totalTest > 0 ? ((totalConf / totalTest) * 100).toFixed(1) : 0;
+            const treatmentRate = totalConf > 0 ? ((totalTreated / totalConf) * 100).toFixed(1) : 0;
+            const cfr = totalConf > 0 ? ((totalDeaths / totalConf) * 100).toFixed(1) : 0;
+            const admissionRate = totalConf > 0 ? ((totalAdmissions / totalConf) * 100).toFixed(1) : 0;
+            
+            const facilities = new Set(filteredData.map(row => row.hf)).size;
+            const districts = new Set(filteredData.map(row => row.adm1)).size;
+            
+            const reportContent = `
+SIERRA LEONE MALARIA SURVEILLANCE REPORT
+========================================
+Generated: ${new Date().toLocaleString()}
+Data Period: ${Math.min(...filteredData.map(r => r.year))}-${Math.max(...filteredData.map(r => r.year))}
+
+SUMMARY STATISTICS
+------------------
+Total Confirmed Cases: ${totalConf.toLocaleString()}
+Total Suspected Cases: ${totalSusp.toLocaleString()}
+Total Tests Performed: ${totalTest.toLocaleString()}
+Total Treated Cases: ${totalTreated.toLocaleString()}
+Total Deaths: ${totalDeaths.toLocaleString()}
+Total Admissions: ${totalAdmissions.toLocaleString()}
+
+KEY PERFORMANCE INDICATORS
+--------------------------
+Test Positivity Rate: ${positivityRate}%
+Treatment Coverage: ${treatmentRate}%
+Case Fatality Rate: ${cfr}%
+Admission Rate: ${admissionRate}%
+
+GEOGRAPHIC COVERAGE
+------------------
+Districts Reporting: ${districts}
+Health Facilities: ${facilities}
+Total Records: ${filteredData.length.toLocaleString()}
+
+RECOMMENDATIONS
+--------------
+${positivityRate > 30 ? '• High positivity rate indicates potential testing gaps or outbreak situation' : ''}
+${treatmentRate < 80 ? '• Treatment coverage below 80% - strengthen case management' : ''}
+${cfr > 2 ? '• Case fatality rate above 2% - review clinical care quality' : ''}
+${testingRate < 70 ? '• Testing rate below 70% of suspected cases - improve diagnostic capacity' : ''}
+
+This report was generated by the Sierra Leone HMIS Malaria Dashboard.
+For technical support, contact the Ministry of Health and Sanitation.
+            `;
+            
+            const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Sierra_Leone_Malaria_Report_${new Date().toISOString().split('T')[0]}.txt`;
+            link.click();
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.querySelector('.sidebar-content').appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // You can add any initialization code here
+        });
+    </script>
+</body>
+</html>
