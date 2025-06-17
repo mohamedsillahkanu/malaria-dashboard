@@ -696,30 +696,39 @@
                 <!-- Main Charts Grid -->
                 <div class="dashboard-grid">
                     <div class="chart-container">
-                        <div class="chart-title">📈 Monthly Confirmed Cases Trend</div>
+                        <div class="chart-title">📈 Monthly Case Trends</div>
                         <div class="chart-wrapper">
                             <canvas id="trendsChart"></canvas>
                         </div>
                     </div>
                     
                     <div class="chart-container">
-                        <div class="chart-title">🧪 Testing Performance</div>
+                        <div class="chart-title">🧪 Testing & Performance Rates</div>
                         <div class="chart-wrapper">
-                            <canvas id="testingChart"></canvas>
+                            <canvas id="treatmentChart"></canvas>
                         </div>
                     </div>
                     
                     <div class="chart-container">
-                        <div class="chart-title">🌍 Geographic Distribution</div>
+                        <div class="chart-title">🌍 Cases by District</div>
                         <div class="chart-wrapper">
                             <canvas id="geoChart"></canvas>
                         </div>
                     </div>
                     
                     <div class="chart-container">
-                        <div class="chart-title">💊 Treatment Outcomes</div>
+                        <div class="chart-title">📊 Testing vs Confirmation</div>
                         <div class="chart-wrapper">
-                            <canvas id="treatmentChart"></canvas>
+                            <canvas id="testingChart"></canvas>
+                        </div>
+                    </div>                            <canvas id="geoChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-title">📊 Testing vs Confirmation</div>
+                        <div class="chart-wrapper">
+                            <canvas id="testingChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -727,18 +736,18 @@
                 <!-- Full Width Charts -->
                 <div class="dashboard-grid">
                     <div class="chart-container full-width">
-                        <div class="chart-title">📊 Comprehensive Surveillance Metrics</div>
+                        <div class="chart-title">📈 Comprehensive Case Management Pipeline</div>
                         <div class="chart-wrapper">
-                            <canvas id="comprehensiveChart"></canvas>
+                            <canvas id="pipelineChart"></canvas>
                         </div>
                     </div>
                 </div>
 
                 <div class="dashboard-grid">
                     <div class="chart-container full-width">
-                        <div class="chart-title">🔄 Testing vs Treatment Pipeline</div>
+                        <div class="chart-title">🎯 Monthly Performance Dashboard</div>
                         <div class="chart-wrapper">
-                            <canvas id="pipelineChart"></canvas>
+                            <canvas id="comprehensiveChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -1087,20 +1096,19 @@
             const totalConf = filteredData.reduce((sum, row) => sum + (row.conf || 0), 0);
             const totalSusp = filteredData.reduce((sum, row) => sum + (row.susp || 0), 0);
             const totalTest = filteredData.reduce((sum, row) => sum + (row.test || 0), 0);
-            const totalDeaths = filteredData.reduce((sum, row) => sum + (row.maldth || 0), 0);
             const totalTreated = filteredData.reduce((sum, row) => sum + (row.maltreat || 0), 0);
             const totalU5Conf = filteredData.reduce((sum, row) => sum + (row.u5_conf || 0), 0);
             
             const positivityRate = totalTest > 0 ? ((totalConf / totalTest) * 100).toFixed(1) : 0;
-            const cfr = totalConf > 0 ? ((totalDeaths / totalConf) * 100).toFixed(1) : 0;
             const treatmentRate = totalConf > 0 ? ((totalTreated / totalConf) * 100).toFixed(1) : 0;
+            const testingRate = totalSusp > 0 ? ((totalTest / totalSusp) * 100).toFixed(1) : 0;
             const u5Percentage = totalConf > 0 ? ((totalU5Conf / totalConf) * 100).toFixed(1) : 0;
             
             const kpis = [
                 { 
                     label: 'Confirmed', 
                     value: totalConf.toLocaleString(),
-                    trend: totalConf > 1000 ? '⬆️' : totalConf > 500 ? '➡️' : '⬇️'
+                    trend: totalConf > 1000 ? '📈' : totalConf > 500 ? '📊' : '📉'
                 },
                 { 
                     label: 'Positivity %', 
@@ -1108,14 +1116,14 @@
                     trend: positivityRate > 30 ? '🔴' : positivityRate > 15 ? '🟡' : '🟢'
                 },
                 { 
-                    label: 'CFR %', 
-                    value: cfr + '%',
-                    trend: cfr > 2 ? '🔴' : cfr > 1 ? '🟡' : '🟢'
+                    label: 'Treatment %', 
+                    value: treatmentRate + '%',
+                    trend: treatmentRate > 80 ? '🟢' : treatmentRate > 60 ? '🟡' : '🔴'
                 },
                 { 
-                    label: 'Under-5 %', 
-                    value: u5Percentage + '%',
-                    trend: u5Percentage > 60 ? '⚠️' : '📊'
+                    label: 'Testing %', 
+                    value: testingRate + '%',
+                    trend: testingRate > 70 ? '🟢' : testingRate > 50 ? '🟡' : '🔴'
                 }
             ];
             
@@ -1130,19 +1138,20 @@
         function updateMetrics() {
             const metricsGrid = document.getElementById('metrics-grid');
             
-            const totalConf = filteredData.reduce((sum, row) => sum + row.conf, 0);
-            const totalSusp = filteredData.reduce((sum, row) => sum + row.susp, 0);
-            const totalTest = filteredData.reduce((sum, row) => sum + row.test, 0);
-            const totalTreated = filteredData.reduce((sum, row) => sum + row.maltreat, 0);
-            const totalDeaths = filteredData.reduce((sum, row) => sum + row.maldth, 0);
-            const totalAdmissions = filteredData.reduce((sum, row) => sum + row.maladm, 0);
+            const totalConf = filteredData.reduce((sum, row) => sum + (row.conf || 0), 0);
+            const totalSusp = filteredData.reduce((sum, row) => sum + (row.susp || 0), 0);
+            const totalTest = filteredData.reduce((sum, row) => sum + (row.test || 0), 0);
+            const totalTreated = filteredData.reduce((sum, row) => sum + (row.maltreat || 0), 0);
+            const totalU5Conf = filteredData.reduce((sum, row) => sum + (row.u5_conf || 0), 0);
+            const totalPregnant = filteredData.reduce((sum, row) => sum + (row.pregnant_conf || 0), 0);
             
             const positivityRate = totalTest > 0 ? ((totalConf / totalTest) * 100).toFixed(1) : 0;
             const treatmentRate = totalConf > 0 ? ((totalTreated / totalConf) * 100).toFixed(1) : 0;
-            const cfr = totalConf > 0 ? ((totalDeaths / totalConf) * 100).toFixed(1) : 0;
-            const admissionRate = totalConf > 0 ? ((totalAdmissions / totalConf) * 100).toFixed(1) : 0;
+            const testingRate = totalSusp > 0 ? ((totalTest / totalSusp) * 100).toFixed(1) : 0;
+            const u5Rate = totalConf > 0 ? ((totalU5Conf / totalConf) * 100).toFixed(1) : 0;
             
             const facilities = new Set(filteredData.map(row => row.hf)).size;
+            const districts = new Set(filteredData.map(row => row.adm1)).size;
             const timeRange = filteredData.length > 0 ? 
                 `${Math.min(...filteredData.map(r => r.year))}-${Math.max(...filteredData.map(r => r.year))}` : '2015-2023';
             
@@ -1150,9 +1159,9 @@
                 { label: 'Total Confirmed Cases', value: totalConf.toLocaleString() },
                 { label: 'Total Suspected Cases', value: totalSusp.toLocaleString() },
                 { label: 'Test Positivity Rate', value: positivityRate + '%' },
+                { label: 'Testing Coverage', value: testingRate + '%' },
                 { label: 'Treatment Coverage', value: treatmentRate + '%' },
-                { label: 'Case Fatality Rate', value: cfr + '%' },
-                { label: 'Admission Rate', value: admissionRate + '%' },
+                { label: 'Under-5 Cases', value: totalU5Conf.toLocaleString() + ` (${u5Rate}%)` },
                 { label: 'Reporting Facilities', value: facilities },
                 { label: 'Data Period', value: timeRange }
             ];
@@ -1194,12 +1203,12 @@
                 const key = `${row.year}-${String(row.month).padStart(2, '0')}`;
                 const displayKey = `${monthNames[row.month]} ${row.year}`;
                 if (!acc[key]) {
-                    acc[key] = { conf: 0, susp: 0, test: 0, deaths: 0, display: displayKey };
+                    acc[key] = { conf: 0, susp: 0, test: 0, treated: 0, display: displayKey };
                 }
                 acc[key].conf += row.conf || 0;
                 acc[key].susp += row.susp || 0;
                 acc[key].test += row.test || 0;
-                acc[key].deaths += row.maldth || 0;
+                acc[key].treated += row.maltreat || 0;
                 return acc;
             }, {});
             
@@ -1207,7 +1216,7 @@
             const labels = months.map(month => monthlyData[month].display);
             const confData = months.map(month => monthlyData[month].conf);
             const suspData = months.map(month => monthlyData[month].susp);
-            const deathsData = months.map(month => monthlyData[month].deaths);
+            const treatedData = months.map(month => monthlyData[month].treated);
             
             charts.trendsChart = new Chart(ctx, {
                 type: 'line',
@@ -1237,10 +1246,10 @@
                             pointHoverRadius: 5
                         },
                         {
-                            label: 'Deaths',
-                            data: deathsData,
-                            borderColor: '#2c3e50',
-                            backgroundColor: 'rgba(44, 62, 80, 0.1)',
+                            label: 'Treated Cases',
+                            data: treatedData,
+                            borderColor: '#27ae60',
+                            backgroundColor: 'rgba(39, 174, 96, 0.1)',
                             borderWidth: 2,
                             fill: false,
                             tension: 0.4,
@@ -1460,37 +1469,44 @@
             const ctx = document.getElementById('treatmentChart');
             if (!ctx) return;
             
-            // Calculate treatment outcomes
+            // Calculate treatment outcomes - focus on positive metrics
             const monthlyData = filteredData.reduce((acc, row) => {
                 const key = `${row.year}-${String(row.month).padStart(2, '0')}`;
                 if (!acc[key]) {
-                    acc[key] = { conf: 0, treated: 0, admitted: 0, deaths: 0 };
+                    acc[key] = { conf: 0, treated: 0, test: 0, susp: 0 };
                 }
                 acc[key].conf += row.conf || 0;
                 acc[key].treated += row.maltreat || 0;
-                acc[key].admitted += row.maladm || 0;
-                acc[key].deaths += row.maldth || 0;
+                acc[key].test += row.test || 0;
+                acc[key].susp += row.susp || 0;
                 return acc;
             }, {});
             
             const months = Object.keys(monthlyData).sort();
+            const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const labels = months.map(month => {
+                const [year, monthNum] = month.split('-');
+                return `${monthNames[parseInt(monthNum)]} ${year}`;
+            });
+            
             const treatmentRate = months.map(month => {
                 const data = monthlyData[month];
                 return data.conf > 0 ? (data.treated / data.conf) * 100 : 0;
             });
-            const admissionRate = months.map(month => {
+            const testingRate = months.map(month => {
                 const data = monthlyData[month];
-                return data.conf > 0 ? (data.admitted / data.conf) * 100 : 0;
+                return data.susp > 0 ? (data.test / data.susp) * 100 : 0;
             });
-            const caseFatalityRate = months.map(month => {
+            const positivityRate = months.map(month => {
                 const data = monthlyData[month];
-                return data.conf > 0 ? (data.deaths / data.conf) * 100 : 0;
+                return data.test > 0 ? (data.conf / data.test) * 100 : 0;
             });
             
             charts.treatmentChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: months,
+                    labels: labels,
                     datasets: [
                         {
                             label: 'Treatment Rate (%)',
@@ -1499,25 +1515,28 @@
                             backgroundColor: 'rgba(39, 174, 96, 0.1)',
                             borderWidth: 3,
                             fill: true,
-                            tension: 0.4
+                            tension: 0.4,
+                            pointRadius: 4
                         },
                         {
-                            label: 'Admission Rate (%)',
-                            data: admissionRate,
+                            label: 'Testing Rate (%)',
+                            data: testingRate,
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 3
+                        },
+                        {
+                            label: 'Positivity Rate (%)',
+                            data: positivityRate,
                             borderColor: '#f39c12',
                             backgroundColor: 'rgba(243, 156, 18, 0.1)',
                             borderWidth: 2,
                             fill: false,
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Case Fatality Rate (%)',
-                            data: caseFatalityRate,
-                            borderColor: '#e74c3c',
-                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                            borderWidth: 2,
-                            fill: false,
-                            tension: 0.4
+                            tension: 0.4,
+                            pointRadius: 3
                         }
                     ]
                 },
@@ -1528,14 +1547,25 @@
                         legend: {
                             display: true,
                             position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw.toFixed(1)}%`;
+                                }
+                            }
                         }
                     },
                     scales: {
                         x: {
                             title: {
                                 display: true,
-                                text: 'Month',
+                                text: 'Month-Year',
                                 font: { weight: 'bold' }
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
                             }
                         },
                         y: {
@@ -1545,6 +1575,11 @@
                                 display: true,
                                 text: 'Rate (%)',
                                 font: { weight: 'bold' }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
                             }
                         }
                     }
@@ -1556,7 +1591,7 @@
             const ctx = document.getElementById('comprehensiveChart');
             if (!ctx) return;
             
-            // Monthly comprehensive data
+            // Monthly comprehensive data focused on case management
             const monthlyData = filteredData.reduce((acc, row) => {
                 const key = `${row.year}-${String(row.month).padStart(2, '0')}`;
                 if (!acc[key]) {
@@ -1570,6 +1605,13 @@
             }, {});
             
             const months = Object.keys(monthlyData).sort();
+            const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const labels = months.map(month => {
+                const [year, monthNum] = month.split('-');
+                return `${monthNames[parseInt(monthNum)]} ${year}`;
+            });
+            
             const confData = months.map(month => monthlyData[month].conf);
             const suspData = months.map(month => monthlyData[month].susp);
             const testData = months.map(month => monthlyData[month].test);
@@ -1578,7 +1620,7 @@
             charts.comprehensiveChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: months,
+                    labels: labels,
                     datasets: [
                         {
                             label: 'Suspected Cases',
@@ -1616,15 +1658,36 @@
                     plugins: {
                         legend: {
                             display: true,
-                            position: 'top'
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw.toLocaleString()}`;
+                                }
+                            }
                         }
                     },
                     scales: {
                         x: {
                             title: {
                                 display: true,
-                                text: 'Month',
-                                font: { weight: 'bold' }
+                                text: 'Month-Year',
+                                font: { weight: 'bold', size: 14 }
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: { size: 11 }
                             }
                         },
                         y: {
@@ -1632,7 +1695,7 @@
                             title: {
                                 display: true,
                                 text: 'Number of Cases',
-                                font: { weight: 'bold' }
+                                font: { weight: 'bold', size: 14 }
                             },
                             ticks: {
                                 callback: function(value) {
@@ -1640,6 +1703,10 @@
                                 }
                             }
                         }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
                     }
                 }
             });
@@ -1649,7 +1716,7 @@
             const ctx = document.getElementById('pipelineChart');
             if (!ctx) return;
             
-            // Calculate pipeline metrics
+            // Calculate pipeline metrics - focus on case flow without deaths
             const totalSusp = filteredData.reduce((sum, row) => sum + (row.susp || 0), 0);
             const totalTest = filteredData.reduce((sum, row) => sum + (row.test || 0), 0);
             const totalConf = filteredData.reduce((sum, row) => sum + (row.conf || 0), 0);
@@ -1678,7 +1745,8 @@
                             '#e74c3c',
                             '#27ae60'
                         ],
-                        borderWidth: 2
+                        borderWidth: 2,
+                        borderRadius: 8
                     }]
                 },
                 options: {
@@ -1689,6 +1757,9 @@
                             display: false
                         },
                         tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
                             callbacks: {
                                 label: function(context) {
                                     const value = context.raw;
@@ -1710,7 +1781,10 @@
                             title: {
                                 display: true,
                                 text: 'Case Management Steps',
-                                font: { weight: 'bold' }
+                                font: { weight: 'bold', size: 14 }
+                            },
+                            ticks: {
+                                font: { size: 12 }
                             }
                         },
                         y: {
@@ -1718,7 +1792,7 @@
                             title: {
                                 display: true,
                                 text: 'Number of Cases',
-                                font: { weight: 'bold' }
+                                font: { weight: 'bold', size: 14 }
                             },
                             ticks: {
                                 callback: function(value) {
