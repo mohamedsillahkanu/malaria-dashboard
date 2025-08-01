@@ -265,27 +265,22 @@
             border: 2px solid rgba(30, 93, 184, 0.3);
             padding: 30px;
             margin-bottom: 25px;
-            text-align: center;
             color: #1e5db8;
             box-shadow: 0 12px 40px rgba(30, 93, 184, 0.2);
-            position: relative;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .main-header .logo {
+            height: 60px;
+            width: auto;
+            flex-shrink: 0;
         }
 
         .main-header .header-content {
             flex: 1;
             text-align: center;
-        }
-
-        .main-header .logo {
-            position: absolute;
-            right: 30px;
-            top: 50%;
-            transform: translateY(-50%);
-            height: 60px;
-            width: auto;
         }
 
         .main-header h1 {
@@ -583,6 +578,13 @@
                             <option value="">None</option>
                         </select>
                     </div>
+
+                    <div class="mapping-group">
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; color: #0f172a;">
+                            <input type="checkbox" id="show-trendline" style="transform: scale(1.2);">
+                            Show Trend Line
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Pivot Table Configuration -->
@@ -649,15 +651,11 @@
         <!-- Main Content -->
         <div class="main-content">
             <div class="main-header">
-                <div class="header-content">
-                    <h1>Universal Data Analytics Dashboard</h1>
-                    <p>Intelligent data visualization and analysis platform</p>
-                </div>
-                <img src="ICF-SL.jpg" alt="ICF-SL Logo" class="logo">
+                <h1>Universal Data Analytics Dashboard</h1>
+                <p>Intelligent data visualization and analysis platform</p>
             </div>
 
             <div id="empty-state" class="empty-state">
-                <img src="ICF-SL.jpg" alt="ICF-SL Logo" style="height: 100px; width: auto; margin-bottom: 25px; background: rgba(255,255,255,0.9); padding: 10px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1);">
                 <h2>Welcome to Universal Analytics</h2>
                 <p>Upload any data file to automatically generate insights, charts, and pivot tables</p>
                 <p style="margin-top: 15px; font-size: 0.95rem;">
@@ -947,7 +945,7 @@
                 createCategoryChart(categoricalColumns[0], numericColumns[0], ++chartCount);
             }
 
-            // Numeric distribution
+            // Numeric distribution - enhanced scatter plot
             if (numericColumns.length >= 2) {
                 createScatterChart(numericColumns[0], numericColumns[1], ++chartCount);
             }
@@ -988,13 +986,14 @@
                         data: data,
                         borderColor: '#1e5db8',
                         backgroundColor: 'rgba(30, 93, 184, 0.2)',
-                        borderWidth: 2,
+                        borderWidth: 3,
                         fill: true,
                         tension: 0.1,
                         pointBackgroundColor: '#1e5db8',
                         pointBorderColor: '#ffffff',
-                        pointRadius: 4,
-                        pointBorderWidth: 2
+                        pointRadius: 5,
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 7
                     }]
                 },
                 options: {
@@ -1115,43 +1114,82 @@
             `;
             chartsGrid.appendChild(chartContainer);
 
-            const data = processedData.map(row => ({
-                x: row[xCol],
-                y: row[yCol]
-            }));
+            // Filter out invalid data points
+            const validData = processedData
+                .filter(row => {
+                    const x = row[xCol];
+                    const y = row[yCol];
+                    return x !== null && x !== undefined && !isNaN(x) && 
+                           y !== null && y !== undefined && !isNaN(y);
+                })
+                .map(row => ({
+                    x: Number(row[xCol]),
+                    y: Number(row[yCol])
+                }));
+
+            console.log(`Scatter plot data: ${validData.length} valid points out of ${processedData.length} total`);
+
+            // Calculate trend line if we have enough data points
+            const trendLineData = calculateTrendLine(validData);
+
+            const datasets = [{
+                label: `${yCol} vs ${xCol}`,
+                data: validData,
+                backgroundColor: 'rgba(36, 112, 214, 0.7)',
+                borderColor: '#1e5db8',
+                pointRadius: 5,
+                pointHoverRadius: 8,
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                showLine: false,
+                type: 'scatter'
+            }];
+
+            // Add trend line if checkbox is checked or automatically for scatter plots
+            if (trendLineData.length > 0) {
+                datasets.push({
+                    label: 'Trend Line',
+                    data: trendLineData,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    pointHoverRadius: 0,
+                    showLine: true,
+                    fill: false,
+                    type: 'line',
+                    tension: 0
+                });
+            }
 
             const ctx = document.getElementById(`chart-${chartId}`);
             charts[`chart-${chartId}`] = new Chart(ctx, {
                 type: 'scatter',
-                data: {
-                    datasets: [{
-                        label: `${yCol} vs ${xCol}`,
-                        data: data,
-                        backgroundColor: 'rgba(36, 112, 214, 0.7)',
-                        borderColor: '#1e5db8',
-                        pointRadius: 6,
-                        pointHoverRadius: 8
-                    }]
-                },
+                data: { datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
                         x: {
+                            type: 'linear',
+                            position: 'bottom',
                             title: { 
                                 display: true, 
                                 text: xCol,
                                 color: '#1e5db8',
                                 font: { weight: 'bold', size: 14 }
-                            }
+                            },
+                            ticks: { color: '#1e5db8' }
                         },
                         y: {
+                            type: 'linear',
                             title: { 
                                 display: true, 
                                 text: yCol,
                                 color: '#1e5db8',
                                 font: { weight: 'bold', size: 14 }
-                            }
+                            },
+                            ticks: { color: '#1e5db8' }
                         }
                     },
                     plugins: {
@@ -1160,10 +1198,47 @@
                                 color: '#1e5db8',
                                 font: { weight: 'bold' }
                             }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.datasetIndex === 1) return null; // Hide tooltip for trend line
+                                    return `${xCol}: ${context.parsed.x}, ${yCol}: ${context.parsed.y}`;
+                                }
+                            }
                         }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'point'
                     }
                 }
             });
+        }
+
+        function calculateTrendLine(data) {
+            if (data.length < 2) return [];
+
+            // Calculate linear regression
+            const n = data.length;
+            const sumX = data.reduce((sum, point) => sum + point.x, 0);
+            const sumY = data.reduce((sum, point) => sum + point.y, 0);
+            const sumXY = data.reduce((sum, point) => sum + (point.x * point.y), 0);
+            const sumXX = data.reduce((sum, point) => sum + (point.x * point.x), 0);
+
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+
+            // Get min and max x values
+            const xValues = data.map(point => point.x);
+            const minX = Math.min(...xValues);
+            const maxX = Math.max(...xValues);
+
+            // Return trend line points
+            return [
+                { x: minX, y: slope * minX + intercept },
+                { x: maxX, y: slope * maxX + intercept }
+            ];
         }
 
         function createTopCategoriesChart(col, chartId) {
@@ -1260,7 +1335,98 @@
 
             let data, options;
 
-            if (groupCol) {
+            if (chartType === 'scatter') {
+                // Enhanced scatter plot with trend line
+                const validData = processedData
+                    .filter(row => {
+                        const x = row[xCol];
+                        const y = row[yCol];
+                        return x !== null && x !== undefined && !isNaN(x) && 
+                               y !== null && y !== undefined && !isNaN(y);
+                    })
+                    .map(row => ({
+                        x: Number(row[xCol]),
+                        y: Number(row[yCol])
+                    }));
+
+                const datasets = [{
+                    label: `${yCol} vs ${xCol}`,
+                    data: validData,
+                    backgroundColor: 'rgba(36, 112, 214, 0.7)',
+                    borderColor: '#1e5db8',
+                    pointRadius: 6,
+                    pointHoverRadius: 9,
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    showLine: false
+                }];
+
+                // Add trend line if checkbox is checked
+                const showTrendline = document.getElementById('show-trendline').checked;
+                if (showTrendline) {
+                    const trendLineData = calculateTrendLine(validData);
+                    if (trendLineData.length > 0) {
+                        datasets.push({
+                            label: 'Trend Line',
+                            data: trendLineData,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            pointHoverRadius: 0,
+                            showLine: true,
+                            fill: false,
+                            type: 'line',
+                            tension: 0
+                        });
+                    }
+                }
+
+                data = { datasets };
+                options = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: { 
+                                display: true, 
+                                text: xCol,
+                                color: '#1e5db8',
+                                font: { weight: 'bold', size: 16 }
+                            },
+                            ticks: { color: '#1e5db8' }
+                        },
+                        y: {
+                            type: 'linear',
+                            title: { 
+                                display: true, 
+                                text: yCol,
+                                color: '#1e5db8',
+                                font: { weight: 'bold', size: 16 }
+                            },
+                            ticks: { color: '#1e5db8' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#1e5db8',
+                                font: { weight: 'bold', size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.datasetIndex === 1) return null; // Hide tooltip for trend line
+                                    return `${xCol}: ${context.parsed.x}, ${yCol}: ${context.parsed.y}`;
+                                }
+                            }
+                        }
+                    }
+                };
+            } else if (groupCol) {
                 // Grouped data with professional blue variations
                 const groups = _.groupBy(processedData, groupCol);
                 const datasets = Object.keys(groups).map((group, index) => {
@@ -1321,39 +1487,41 @@
                 };
             }
 
-            options = {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: chartType === 'pie' || chartType === 'doughnut' ? {} : {
-                    x: { 
-                        title: { 
-                            display: true, 
-                            text: xCol,
-                            color: '#1e5db8',
-                            font: { weight: 'bold', size: 16 }
+            if (!options) {
+                options = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: chartType === 'pie' || chartType === 'doughnut' ? {} : {
+                        x: { 
+                            title: { 
+                                display: true, 
+                                text: xCol,
+                                color: '#1e5db8',
+                                font: { weight: 'bold', size: 16 }
+                            },
+                            ticks: { color: '#1e5db8' }
                         },
-                        ticks: { color: '#1e5db8' }
+                        y: { 
+                            beginAtZero: true,
+                            title: { 
+                                display: true, 
+                                text: yCol,
+                                color: '#1e5db8',
+                                font: { weight: 'bold', size: 16 }
+                            },
+                            ticks: { color: '#1e5db8' }
+                        }
                     },
-                    y: { 
-                        beginAtZero: true,
-                        title: { 
-                            display: true, 
-                            text: yCol,
-                            color: '#1e5db8',
-                            font: { weight: 'bold', size: 16 }
-                        },
-                        ticks: { color: '#1e5db8' }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#1e5db8',
-                            font: { weight: 'bold', size: 12 }
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#1e5db8',
+                                font: { weight: 'bold', size: 12 }
+                            }
                         }
                     }
-                }
-            };
+                };
+            }
 
             const ctx = document.getElementById('custom-chart');
             charts['custom-chart'] = new Chart(ctx, {
