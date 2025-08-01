@@ -272,15 +272,16 @@
             gap: 20px;
         }
 
+        .main-header .header-content {
+            flex: 1;
+            text-align: center;
+        }
+
         .main-header .logo {
             height: 60px;
             width: auto;
             flex-shrink: 0;
-        }
-
-        .main-header .header-content {
-            flex: 1;
-            text-align: center;
+            order: 2;
         }
 
         .main-header h1 {
@@ -651,8 +652,11 @@
         <!-- Main Content -->
         <div class="main-content">
             <div class="main-header">
-                <h1>Universal Data Analytics Dashboard</h1>
-                <p>Intelligent data visualization and analysis platform</p>
+                <img src="ICF-SL.jpg" alt="ICF-SL Logo" class="logo">
+                <div class="header-content">
+                    <h1>Universal Data Analytics Dashboard</h1>
+                    <p>Intelligent data visualization and analysis platform</p>
+                </div>
             </div>
 
             <div id="empty-state" class="empty-state">
